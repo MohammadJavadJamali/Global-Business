@@ -1,0 +1,21 @@
+﻿using System;
+using Domain.Model;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+
+namespace Persistence.Repository
+{
+    public interface IUserFinancial
+    {
+        Task CreateAsync(UserFinancialPackage entity);
+
+        Task<UserFinancialPackage> GetById(int id);
+
+        IEnumerable<UserFinancialPackage> GetAll();
+
+        Task DeleteAsync(int id);
+
+        IEnumerable<UserFinancialPackage> Find(Expression<Func<UserFinancialPackage, bool>> expression);
+    }
+}
