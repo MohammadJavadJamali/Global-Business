@@ -36,7 +36,7 @@ namespace Persistence.Repository
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            _repository.UpdateAsync(entity);
+            _repository.Update(entity);
         }
 
 
@@ -79,7 +79,7 @@ namespace Persistence.Repository
             {
                 entity.IsDeleted = true;
 
-                _repository.UpdateAsync(entity);
+                _repository.Update(entity);
             }
             catch (Exception)
             {

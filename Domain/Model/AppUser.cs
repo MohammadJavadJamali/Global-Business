@@ -6,11 +6,6 @@ namespace Domain.Model
 {
     public class AppUser : IdentityUser
     {
-        public AppUser()
-        {
-            UserFinancialPackages = new List<UserFinancialPackage>();
-        }
-
         public string FirstName { get; set; }
 
         public string LastName { get; set; }

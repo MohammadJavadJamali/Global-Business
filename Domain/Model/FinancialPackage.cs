@@ -17,6 +17,5 @@ namespace Domain.Model
         //about relation
         public virtual List<UserFinancialPackage> UserFinancialPackages { get; set; }
 
-
     }
 }

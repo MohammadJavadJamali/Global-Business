@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210709054252_IdUserFinancial")]
+    partial class IdUserFinancial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -247,15 +249,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "c3dfeea3-aeaf-40d4-93f1-026739f63f63",
-                            ConcurrencyStamp = "c3d82003-8c52-4569-9d47-6ad79ae4d80d",
+                            Id = "d3146779-ae63-4bc9-9efe-254a984b7d06",
+                            ConcurrencyStamp = "5b54572d-105f-40dd-a0e0-6ec5a78e6131",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "61c76f61-273b-4e10-b1a2-8887c938efce",
-                            ConcurrencyStamp = "36fa6c97-8561-4816-946d-95aba5d69c76",
+                            Id = "bc4b9810-58de-4d1b-b8b0-88edee4fa9e9",
+                            ConcurrencyStamp = "4436db51-99ae-4393-ae9b-16c795a9ae1a",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });

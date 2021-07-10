@@ -100,8 +100,12 @@ namespace Persistence.Repository
                 return entity;
             }
 
-            
-            public T UpdateAsync(T entity)
+            /// <summary>
+            /// Update a entity
+            /// </summary>
+            /// <param name="entity"></param>
+            /// <returns></returns>
+            public T Update(T entity)
             {
                 if (entity == null)
                     throw new ArgumentNullException(nameof(entity));

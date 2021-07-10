@@ -22,18 +22,17 @@ namespace Persistence.Repository
         public AppUser GetUserByEmail(string email) =>
              _repository.GetAll().FirstOrDefault(u => u.Email == email);
 
-        // Update given entity
+        /// <summary>
+        /// Update given entity
+        /// </summary>
+        /// <param name="entity"></param>
         public virtual void UpdateAsync(AppUser entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            _repository.UpdateAsync(entity);
+            _repository.Update(entity);
         }
-
-
-        //public virtual async Task<AppUser> GetUserById(string id) =>
-        //    await _repository.GetByIdAsync(id);
 
     }
 }

@@ -19,7 +19,7 @@ namespace Persistence.Repository
         //remove record from database
         Task<bool> DeleteAsync(object id);
 
-        T UpdateAsync(T entity);
+        T Update(T entity);
 
     }
 }
