@@ -5,6 +5,7 @@ using Persistence.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
@@ -53,8 +54,10 @@ namespace API.Controllers
 
                     transaction.Amount = transactionDTo.Amount;
                     transaction.InitialBalance = currentUser.AccountBalance;
+
                     transaction.FinalBalance = currentUser.AccountBalance + transactionDTo.Amount;
                     transaction.User = currentUser;
+                    transaction.EmailTargetAccount = currentUser.Email;
 
                     await _transaction.CreateAsync(transaction);
 
@@ -99,6 +102,7 @@ namespace API.Controllers
                 throw;
             }
         }
+
         #endregion
 
     }

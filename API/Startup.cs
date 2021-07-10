@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Application.Infrastructure.Mapper;
 
 namespace API
 {
@@ -35,7 +36,7 @@ namespace API
             
             services.AddDataContextServices(Configuration);
 
-            services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(typeof(DomainProfile).Assembly);
         }
 
 

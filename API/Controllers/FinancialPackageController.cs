@@ -1,12 +1,13 @@
 ﻿using System;
+using AutoMapper;
 using Domain.Model;
+using System.Text.Json;
 using Persistence.Repository;
 using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
-using System.Text.Json;
 
 namespace API.Controllers
 {
@@ -17,10 +18,14 @@ namespace API.Controllers
     {
         #region constructor and fields
 
+        private readonly IMapper _mapper;
         private readonly IFinancialPackage _financialPackage;
 
-        public FinancialPackageController(IFinancialPackage financialPackage)
+        public FinancialPackageController(
+              IMapper mapper
+            , IFinancialPackage financialPackage)
         {
+            _mapper = mapper;
             _financialPackage = financialPackage;
         }
 
@@ -46,9 +51,7 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest("All filds are requird!");
 
-            var financial = new FinancialPackage();
-            financial.Term = createDTO.Term;
-            financial.ProfitPercent = createDTO.ProfitPercent;
+            var financial = _mapper.Map<FinancialPackage>(createDTO);
 
             try
             {
@@ -84,19 +87,19 @@ namespace API.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateFinancial(FinancialDTO financialDTO, int id)
+        public async Task<ActionResult> UpdateFinancial(FinancialPackage financialPackage, int id)
         {
             if (!ModelState.IsValid)
                 return BadRequest("All fields are required!");
 
-            var finance = new FinancialPackage();
-            finance.Id = id;
-            finance.ProfitPercent = financialDTO.ProfitPercent;
-            finance.Term = financialDTO.Term;
+            var financialPackageFromDb = await _financialPackage.GetByIdAsync(id);
+            
+            financialPackage.Id = id;
+            _mapper.Map(financialPackage, financialPackageFromDb);
 
             try
             {
-                _financialPackage.UpdateAsync(finance);
+                _financialPackage.UpdateAsync(financialPackageFromDb);
                 return Ok();
             }
             catch (Exception)

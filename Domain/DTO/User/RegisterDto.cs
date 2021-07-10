@@ -12,7 +12,6 @@ namespace Domain.DTO
         public string Email { get; set; }
         public string Password { get; set; }
         public decimal AccountBalance { get; set; }
-        public DateTime RegisterDate { get; set; }
         public ICollection<string> Roles { get; set; }
 
     }

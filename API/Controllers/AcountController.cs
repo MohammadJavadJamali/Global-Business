@@ -1,4 +1,5 @@
 ﻿using System;
+using AutoMapper;
 using Domain.DTO;
 using Domain.Model;
 using API.Services;
@@ -19,14 +20,17 @@ namespace API.Controllers
     {
         #region constructor and fields
 
+        private readonly IMapper _mapper;
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IAuthenticationManager _authenticationManager;
         public AcountController(
-              UserManager<AppUser> userManager
+              IMapper mapper
+            , UserManager<AppUser> userManager
             , RoleManager<IdentityRole> roleManager
             , IAuthenticationManager authenticationManager)
         {
+            _mapper = mapper;
             _roleManager = roleManager;
             _userManager = userManager;
             _authenticationManager = authenticationManager;
@@ -68,15 +72,7 @@ namespace API.Controllers
             if (await _userManager.Users.AnyAsync(u => u.UserName == registerDto.UserName))
                 return BadRequest("Username Taken");
 
-            var user = new AppUser();
-            user.UserName = registerDto.UserName;
-            user.AccountBalance = registerDto.AccountBalance;
-            user.Email = registerDto.Email;
-            user.FirstName = registerDto.FirstName;
-            user.LastName = registerDto.LastName;
-            user.PhoneNumber = registerDto.PhonNumber;
-            user.RegisterDate = DateTime.Now;
-
+            var user = _mapper.Map<AppUser>(registerDto);
 
             foreach (var role in registerDto.Roles)
             {
