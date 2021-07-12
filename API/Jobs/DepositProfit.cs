@@ -51,8 +51,8 @@ namespace API.Jobs
 
             foreach (var user in users)
             {
-                var userFinancialPackages = GetAllUesrFinancialPackages(context, user);
-                //var userFinancialPackages = context.UserFinancialPackages.Where(uf => uf.UserId == user.Id).ToList();
+
+                var userFinancialPackages = user.UserFinancialPackages;
 
                 foreach (var UF in userFinancialPackages)
                 {
@@ -75,7 +75,6 @@ namespace API.Jobs
                     else
                     {
                         context.UserFinancialPackages.Remove(UF);
-                        user.HaveFinancialPackage = false;
                         context.Users.Update(user);
                         await context.SaveChangesAsync();
                     }
@@ -103,7 +102,8 @@ namespace API.Jobs
         private async Task<FinancialPackage> GetFinancialPackage(DataContext context, UserFinancialPackage UF) =>
             await context
                 .FinancialPackages
-                .FindAsync(UF.FinancialPackageId);
+                .Include(f => f.UserFinancialPackages)
+                .FirstOrDefaultAsync(x => x.Id == UF.FinancialPackageId);
 
 
         /// <summary>
@@ -114,7 +114,8 @@ namespace API.Jobs
         private async Task<List<AppUser>> GetAllUsers(DataContext context) =>
             await context
                 .Users
-                .Where(u => u.HaveFinancialPackage == true)
+                .Include(u => u.UserFinancialPackages)
+                .Where(f => f.UserFinancialPackages.Count() > 0)
                 .ToListAsync();
 
         /// <summary>
@@ -124,18 +125,6 @@ namespace API.Jobs
         /// <returns></returns>
         private double GetFinancialPackageDay(UserFinancialPackage UF) =>
             (UF.EndFinancialPackageDate - UF.ChoicePackageDate).TotalDays;
-
-
-        /// <summary>
-        /// Gives user financial packages fo each user
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        private List<UserFinancialPackage> GetAllUesrFinancialPackages(DataContext context, AppUser user) =>
-            context.UserFinancialPackages
-                .Where(uf => uf.UserId == user.Id)
-                .ToList();
 
 
         /// <summary>

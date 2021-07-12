@@ -16,11 +16,9 @@ namespace Domain.Model
 
         public bool IsDeleted { get; set; }
 
-        public bool HaveFinancialPackage { get; set; }
-
         public virtual List<Transaction> Transactions { get; set; }
 
-        public virtual List<UserFinancialPackage> UserFinancialPackages { get; set; }
+        public IList<UserFinancialPackage> UserFinancialPackages { get; set; }
 
         public List<Profit> Profits { get; set; }
 

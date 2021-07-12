@@ -3,6 +3,7 @@ using System.Linq;
 using Domain.Model;
 using System.Text.Json;
 using Persistence.Repository;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
@@ -29,11 +30,10 @@ namespace API.Controllers
         #region Method
 
         [HttpGet]
-        public IActionResult GetProfitByDateFilter(ProfitDateFilter profitDateFilter)
+        public async Task<IActionResult> GetProfitByDateFilter(ProfitDateFilter profitDateFilter)
         {
-            IEnumerable<Profit> profits = _profit
-                .GetAll()
-                .Where(p => p.ProfitDepositDate >= profitDateFilter.StartDate &&
+            IEnumerable<Profit> profits = await _profit
+                .GetAll(p => p.ProfitDepositDate >= profitDateFilter.StartDate &&
                             p.ProfitDepositDate <= profitDateFilter.EndDate);
 
 

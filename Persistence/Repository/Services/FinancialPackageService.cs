@@ -1,7 +1,9 @@
-﻿using System;
+﻿//Remember that the DepositProfit class does not use repository
+using System;
 using System.Linq;
 using Domain.Model;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 using System.Collections.Generic;
 
 namespace Persistence.Repository
@@ -41,8 +43,11 @@ namespace Persistence.Repository
 
 
         // Get's All entities 
-        public IEnumerable<FinancialPackage> GetAll() =>
-            _repository.GetAll().Where(f => f.IsDeleted == false);
+        public async Task<IEnumerable<FinancialPackage>> GetAll(Expression<Func<FinancialPackage, bool>> expression = null)
+        {
+            var financial = await _repository.GetAll(expression);
+            return financial.Where(x => x.IsDeleted == false);
+        }
 
         // Get an entity by id
         public virtual async Task<FinancialPackage> GetByIdAsync(int id)

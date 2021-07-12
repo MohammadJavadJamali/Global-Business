@@ -5,7 +5,6 @@ using Persistence.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
@@ -46,11 +45,12 @@ namespace API.Controllers
             try
             {
                 var currentUser = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
-                var targetUser = _user.GetUserByEmail(transactionDTo.EmailTargetAccount);
+
+                var targetUser = _user.FindUser(u => u.Email == transactionDTo.EmailTargetAccount);
 
                 if (currentUser.NormalizedEmail == targetUser.Email.ToUpper())
                 {
-                    var transaction = new Transaction();
+                    Transaction transaction = new();
 
                     transaction.Amount = transactionDTo.Amount;
                     transaction.InitialBalance = currentUser.AccountBalance;

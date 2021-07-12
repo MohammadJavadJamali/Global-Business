@@ -1,4 +1,5 @@
-﻿using System;
+﻿//Remember that the DepositProfit class does not use repository
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
@@ -82,90 +83,107 @@ namespace Persistence.Repository
 
         #region Methods
 
-            //Create
-            public async Task<T> CreateAsync(T entity)
+        /// <summary>
+        /// Create a entity 
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public async Task<T> CreateAsync(T entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            try
             {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-                try
-                {
-                    await _context.Set<T>().AddAsync(entity);
-                    _context.SaveChanges();
-                }
-                catch (DbUpdateException exception)
-                {
-                    throw new Exception(await GetFullErrorTextAndRollbackEntityChangesAsync(exception), exception);
-                }
-                return entity;
+                await _context.Set<T>().AddAsync(entity);
+                _context.SaveChanges();
             }
-
-            /// <summary>
-            /// Update a entity
-            /// </summary>
-            /// <param name="entity"></param>
-            /// <returns></returns>
-            public T Update(T entity)
+            catch (DbUpdateException exception)
             {
-                if (entity == null)
-                    throw new ArgumentNullException(nameof(entity));
-
-            
-                try
-                {
-                    _context.Set<T>().Update(entity);
-                    _context.SaveChanges();
-                }
-                catch (Exception)
-                {
-                    throw new DbUpdateException();
-                }
-                return entity;
+                throw new Exception(await GetFullErrorTextAndRollbackEntityChangesAsync(exception), exception);
             }
+            return entity;
+        }
 
-            /// <summary>
-            /// remove record from database
-            /// </summary>
-            /// <param name="id"></param>
-            /// <returns></returns>
-            public async Task<bool> DeleteAsync(object id)
+        /// <summary>
+        /// Update a entity
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public T Update(T entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+
+            try
             {
-                try
-                {
-                    var entity = await GetByIdAsync(id);
-
-                    _context.Set<T>().Remove(entity);
-                    _context.SaveChanges();
-                }
-                catch
-                {
-                    return false;
-                }
-                return true;
+                _context.Set<T>().Update(entity);
+                _context.SaveChanges();
             }
-
-            //Find records that have this experssion
-            public IEnumerable<T> Find(Expression<Func<T, bool>> expression)
+            catch (Exception)
             {
-                return _context.Set<T>().Where(expression);
+                throw new DbUpdateException();
             }
-            
-            //Get all records 
-            public IEnumerable<T> GetAll() =>
-                _context.Set<T>().ToList();
+            return entity;
+        }
 
-
-            //Find record with id
-            public async Task<T> GetByIdAsync(object id)
+        /// <summary>
+        /// remove record from database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<bool> DeleteAsync(object id)
+        {
+            try
             {
-                return await _context.Set<T>().FindAsync(id);
-            }
+                var entity = await GetByIdAsync(id);
 
-            //Dispose
-            public void Dispose()
-            {
-                _context.Dispose();
+                _context.Set<T>().Remove(entity);
+                _context.SaveChanges();
             }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        //Find records that have this experssion
+        public IEnumerable<T> Find(Expression<Func<T, bool>> expression)
+        {
+            return _context.Set<T>().Where(expression);
+        }
+
+        /// <summary>
+        /// Get all record . you can pass parameters in string format for include method .
+        /// parameters should split with ',' if you have mor than one patameter 
+        /// </summary>
+        /// <param name="includeProperties"></param>
+        /// <returns>List of your entity with include field</returns>
+        public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null)
+        {
+            IQueryable<T> query = Entities;
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            return await query.ToListAsync();
+
+        }
+
+
+        //Find record with id
+        public async Task<T> GetByIdAsync(object id)
+        {
+            return await _context.Set<T>().FindAsync(id);
+        }
+
+        //Dispose
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
 
         #endregion
     }

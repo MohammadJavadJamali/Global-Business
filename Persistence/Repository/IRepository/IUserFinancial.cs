@@ -12,7 +12,7 @@ namespace Persistence.Repository
 
         Task<UserFinancialPackage> GetById(int id);
 
-        IEnumerable<UserFinancialPackage> GetAll();
+        //Task<IEnumerable<UserFinancialPackage>> GetAll();
 
         Task DeleteAsync(int id);
 

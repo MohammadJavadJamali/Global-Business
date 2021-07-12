@@ -1,6 +1,8 @@
-﻿using System;
+﻿//Remember that the DepositProfit class does not use repository
+using System;
 using Domain.Model;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 using System.Collections.Generic;
 
 namespace Persistence.Repository
@@ -20,8 +22,8 @@ namespace Persistence.Repository
 
         #region Methods
 
-        public IEnumerable<Profit> GetAll() =>
-            _repository.GetAll();
+        public async Task<IEnumerable<Profit>> GetAll(Expression<Func<Profit, bool>> expression = null) =>
+            await _repository.GetAll(expression);
 
         public async Task CreateAsync(Profit profit)
         {
@@ -31,18 +33,6 @@ namespace Persistence.Repository
 
         #endregion
 
-        #region Filters
-
-        //public IEnumerable<Profit> GetProfitsByDateFilter(DateTime startDate, DateTime endDate)
-        //{
-        //    var 
-        //}
-        //_profitDataContext
-        //.Profits
-        //.Where(p => p.ProfitDepositDate >= startDate && p.ProfitDepositDate <= endDate)
-        //.ToList();
-
-        #endregion
 
     }
 }

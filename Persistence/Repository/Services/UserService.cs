@@ -1,7 +1,11 @@
-﻿using System;
+﻿//Remember that the DepositProfit class does not use repository
+using System;
 using System.Linq;
 using Domain.Model;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
 using System.Collections.Generic;
+
 
 namespace Persistence.Repository
 {
@@ -16,11 +20,14 @@ namespace Persistence.Repository
         #endregion
 
 
-        public IEnumerable<AppUser> GetAll() =>
-            _repository.GetAll();
+        public async Task<IEnumerable<AppUser>> GetAll(Expression<Func<AppUser, bool>> filter = null) =>
+            await _repository.GetAll(filter);
 
-        public AppUser GetUserByEmail(string email) =>
-             _repository.GetAll().FirstOrDefault(u => u.Email == email);
+
+        public AppUser FindUser(Expression<Func<AppUser, bool>> expression)
+        {
+            return _repository.Find(expression).First();
+        }
 
         /// <summary>
         /// Update given entity

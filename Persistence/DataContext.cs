@@ -24,6 +24,23 @@ namespace Persistence
         {
             base.OnModelCreating(modelBuilder);
 
+
+            //add relation between AppUser and FinancialPackage(many to many)
+
+            modelBuilder.Entity<UserFinancialPackage>()
+                .HasKey(k => new { k.UserId, k.FinancialPackageId });
+
+            modelBuilder.Entity<UserFinancialPackage>()
+                .HasOne(u => u.User)
+                .WithMany(uf => uf.UserFinancialPackages)
+                .HasForeignKey(ui => ui.UserId);
+
+            modelBuilder.Entity<UserFinancialPackage>()
+                .HasOne(f => f.FinancialPackage)
+                .WithMany(uf => uf.UserFinancialPackages)
+                .HasForeignKey(fi => fi.FinancialPackageId);
+
+
             //add relation between User and Transaction (one to many)
             modelBuilder.Entity<Transaction>()
                 .HasOne(u => u.User)
@@ -51,7 +68,6 @@ namespace Persistence
                         NormalizedName = "CUSTOMER"
                     }
                 );
-            ;
         }
     }
 }

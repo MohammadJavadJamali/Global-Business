@@ -1,7 +1,9 @@
-﻿using System;
+﻿//Remember that the DepositProfit class does not use repository
+using System;
 using Domain.Model;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Persistence.Repository
 {
@@ -28,10 +30,8 @@ namespace Persistence.Repository
             await _repository.CreateAsync(entity);
         }
 
-        public IEnumerable<Transaction> GetAll()
-        {
-            return _repository.GetAll();
-        }
+        public async Task<IEnumerable<Transaction>> GetAll(Expression<Func<Transaction, bool>> expression = null) =>
+            await _repository.GetAll(expression);
 
         public async Task<Transaction> GetByIdAsync(int id)
         {

@@ -7,8 +7,8 @@ namespace Persistence.Repository
 {
     public interface IRepository<T> : IDisposable where T : class
     {
-
-        IEnumerable<T> GetAll();
+                                     
+        Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null);
 
         Task<T> GetByIdAsync(object id);
 

@@ -1,13 +1,17 @@
-﻿using Domain.Model;
+﻿using System;
+using Domain.Model;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
 using System.Collections.Generic;
 
 namespace Persistence.Repository
 {
     public interface IUser
     {
-        AppUser GetUserByEmail(string email);
 
-        IEnumerable<AppUser> GetAll();
+        Task<IEnumerable<AppUser>> GetAll(Expression<Func<AppUser, bool>> filter = null);
+
+        AppUser FindUser(Expression<Func<AppUser, bool>> expression);
 
         void UpdateAsync(AppUser entity);
     }

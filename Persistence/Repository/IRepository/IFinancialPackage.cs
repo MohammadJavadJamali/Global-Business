@@ -1,5 +1,7 @@
-﻿using Domain.Model;
+﻿using System;
+using Domain.Model;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 using System.Collections.Generic;
 
 namespace Persistence.Repository
@@ -10,7 +12,7 @@ namespace Persistence.Repository
 
         Task<bool> Delete(int id);
 
-        IEnumerable<FinancialPackage> GetAll();
+        Task<IEnumerable<FinancialPackage>> GetAll(Expression<Func<FinancialPackage, bool>> expression = null);
 
         Task<FinancialPackage> GetByIdAsync(int id);
 
