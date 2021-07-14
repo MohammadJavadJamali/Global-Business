@@ -6,6 +6,10 @@ namespace Domain.Model
 {
     public class AppUser : IdentityUser
     {
+        public string IntroductionCode { get; set; }
+
+        public string ParentId { get; set; }
+
         public string FirstName { get; set; }
 
         public string LastName { get; set; }

@@ -1,6 +1,5 @@
 ﻿//Remember that the DepositProfit class does not use repository
 using System;
-using System.Linq;
 using Domain.Model;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
@@ -24,9 +23,25 @@ namespace Persistence.Repository
             await _repository.GetAll(filter);
 
 
-        public AppUser FindUser(Expression<Func<AppUser, bool>> expression)
+        public async Task<AppUser> FirstOrDefaultAsync(Expression<Func<AppUser, bool>> expression) =>
+            await _repository.FirstOrDefaultAsync(expression);
+
+
+        public IEnumerable<AppUser> Where(Expression<Func<AppUser, bool>> expression)
         {
-            return _repository.Find(expression).First();
+            return _repository.Where(expression);
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            try
+            {
+                return await _repository.DeleteAsync(id);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         /// <summary>

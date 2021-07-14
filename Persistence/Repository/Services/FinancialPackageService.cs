@@ -64,7 +64,7 @@ namespace Persistence.Repository
         /// Deletes the entity that passed to it from database
         /// </summary>
         /// <param name="id"></param>
-        public async Task<bool> Delete(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             try
             {

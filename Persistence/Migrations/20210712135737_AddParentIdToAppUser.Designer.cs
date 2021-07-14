@@ -10,8 +10,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210709055555_IdUserFinancial1")]
-    partial class IdUserFinancial1
+    [Migration("20210712135737_AddParentIdToAppUser")]
+    partial class AddParentIdToAppUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -46,8 +46,8 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HaveFinancialPackage")
-                        .HasColumnType("bit");
+                    b.Property<string>("IntroductionCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -68,6 +68,9 @@ namespace Persistence.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ParentId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -188,10 +191,11 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Model.UserFinancialPackage", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("FinancialPackageId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("AmountInPackage")
                         .HasColumnType("decimal(18,2)");
@@ -202,20 +206,12 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("EndFinancialPackageDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("FinancialPackageId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "FinancialPackageId");
 
                     b.HasIndex("FinancialPackageId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("UserFinancialPackages");
                 });
@@ -249,15 +245,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "c3dfeea3-aeaf-40d4-93f1-026739f63f63",
-                            ConcurrencyStamp = "c3d82003-8c52-4569-9d47-6ad79ae4d80d",
+                            Id = "ff66c58d-f181-42c4-89f6-1b1378d4bf87",
+                            ConcurrencyStamp = "93d22304-59ae-4fb5-b92e-c9e172768b0c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "61c76f61-273b-4e10-b1a2-8887c938efce",
-                            ConcurrencyStamp = "36fa6c97-8561-4816-946d-95aba5d69c76",
+                            Id = "45bc3669-7aa6-447d-b92b-10321b92d68e",
+                            ConcurrencyStamp = "043446d5-416b-421f-b30c-7f3bab4a1277",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -395,7 +391,9 @@ namespace Persistence.Migrations
 
                     b.HasOne("Domain.Model.AppUser", "User")
                         .WithMany("UserFinancialPackages")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("FinancialPackage");
 

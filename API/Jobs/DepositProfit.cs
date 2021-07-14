@@ -33,7 +33,7 @@ namespace API.Jobs
             using (DataContext dataContext = new DataContext(option.Options))
             {
                 await CalculateProfitAmountPerDayForEachUser(dataContext);
-                _logger.LogInformation("done!");
+                _logger.LogInformation("Profit from financial packages was deposited!");
             }
         }
         #endregion
@@ -137,11 +137,13 @@ namespace API.Jobs
         private async Task CreateTransaction(AppUser user, decimal transactionAmount, DataContext context)
         {
             Transaction transaction = new();
+
+            transaction.User = user;
             transaction.Amount = transactionAmount;
+            transaction.TransactionDate = DateTime.Now;
+            transaction.EmailTargetAccount = user.Email;
             transaction.InitialBalance = user.AccountBalance;
             transaction.FinalBalance = user.AccountBalance + transactionAmount;
-            transaction.TransactionDate = DateTime.Now;
-            transaction.User = user;
 
             user.AccountBalance += transactionAmount;
 

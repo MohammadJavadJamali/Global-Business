@@ -42,10 +42,8 @@ namespace Persistence.Repository
             await _repository.DeleteAsync(id);
         }
 
-        public IEnumerable<UserFinancialPackage> Find(Expression<Func<UserFinancialPackage, bool>> expression) =>
-            _repository.Find(expression);
-
-
+        public IEnumerable<UserFinancialPackage> Where(Expression<Func<UserFinancialPackage, bool>> expression) =>
+            _repository.Where(expression);
 
     }
 }

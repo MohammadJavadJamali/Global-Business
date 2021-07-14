@@ -15,7 +15,7 @@ namespace API.Extensions
 
             services.AddSingleton<DepositProfit>();
             //0 0 12 * * ?          0/10 * * * * ?
-            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "0 0/10 * * * ?"));
+            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "0 0 0 * * ?"));
 
             services.AddHostedService<QuartzHostedService>();
 

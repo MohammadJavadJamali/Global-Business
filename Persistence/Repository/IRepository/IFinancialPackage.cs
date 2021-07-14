@@ -10,7 +10,7 @@ namespace Persistence.Repository
     {
         Task CreateAsync(FinancialPackage entity);
 
-        Task<bool> Delete(int id);
+        Task<bool> DeleteAsync(int id);
 
         Task<IEnumerable<FinancialPackage>> GetAll(Expression<Func<FinancialPackage, bool>> expression = null);
 

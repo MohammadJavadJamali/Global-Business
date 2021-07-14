@@ -10,9 +10,6 @@ namespace Application.Infrastructure.Mapper
     {
         public DomainProfile()
         {
-            CreateMap<RegisterDto, AppUser>()
-                .ForMember(cd => cd.RegisterDate, opt =>
-                    opt.MapFrom(_ => DateTime.Now));
 
             CreateMap<FinancialDTO, FinancialPackage>();
 

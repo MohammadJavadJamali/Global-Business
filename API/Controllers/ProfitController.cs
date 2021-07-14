@@ -29,6 +29,16 @@ namespace API.Controllers
 
         #region Method
 
+        [HttpPost]
+        public async Task CreateProfit(ProfitDTO profitDTO)
+        {
+            Profit profit = new();
+            profit.ProfitAmount = profitDTO.ProfitAmount;
+            profit.User = profitDTO.AppUser;
+
+            await _profit.CreateAsync(profit);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetProfitByDateFilter(ProfitDateFilter profitDateFilter)
         {

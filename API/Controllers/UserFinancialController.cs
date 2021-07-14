@@ -15,20 +15,17 @@ namespace API.Controllers
     public class UserFinancialController : ControllerBase
     {
         #region constructor and fields
-        private readonly IUser _user;
-        private readonly IUserFinancial _userFinance;
+        private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
         private readonly IFinancialPackage _financialPackage;
 
         public UserFinancialController(
-              IUser user
-            , IUserFinancial userFinance
+              IUserFinancial userFinancial
             , UserManager<AppUser> userManager
             , IFinancialPackage financialPackage)
         {
-            _user = user;
             _userManager = userManager;
-            _userFinance = userFinance;
+            _userFinancial = userFinancial;
             _financialPackage = financialPackage;
         }
 
@@ -53,7 +50,7 @@ namespace API.Controllers
 
             if (DontHaveEnoughMony(financialDTO, currentUser))
             {
-                var pureAccountBalance = GetPureAccountBalance(financialDTO, currentUser);
+                var pureAccountBalance = GetPureAccountBalance(currentUser);
 
                 return BadRequest($"You dont have enough mony! your pure account balance : {pureAccountBalance}");
             }
@@ -69,7 +66,7 @@ namespace API.Controllers
 
             try
             {
-                await _userFinance.CreateAsync(userFinance);
+                await _userFinancial.CreateAsync(userFinance);
 
                 return Ok(financialDTO);
             }
@@ -84,7 +81,7 @@ namespace API.Controllers
 
         private bool DontHaveEnoughMony(UserFinancialDTO financialDTO, AppUser user)
         {
-            decimal sumAmountInPackages = SumAmountInPackages(financialDTO, user);
+            decimal sumAmountInPackages = SumAmountInPackages(user);
 
             if (sumAmountInPackages == 0)
             {
@@ -100,9 +97,9 @@ namespace API.Controllers
         /// <param name="financialDTO"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        private decimal GetPureAccountBalance(UserFinancialDTO financialDTO, AppUser user)
+        private decimal GetPureAccountBalance(AppUser user)
         {
-            decimal sumAmountInPackages = SumAmountInPackages(financialDTO, user);
+            decimal sumAmountInPackages = SumAmountInPackages(user);
 
             return user.AccountBalance - sumAmountInPackages;
         }
@@ -110,14 +107,14 @@ namespace API.Controllers
         /// <summary>
         ///Returns total deposits of user financial packages
         /// </summary>
-        /// <param name="financialDTO"></param>
+        /// <param name="user"></param>
         /// <returns></returns>
-        private decimal SumAmountInPackages(UserFinancialDTO financialDTO, AppUser user)
+        private decimal SumAmountInPackages(AppUser user)
         {
             decimal sumAmountInPackages = 0;
 
-            var userFinancials = _userFinance
-                .Find(x => x.UserId == user.Id);
+            var userFinancials = _userFinancial
+                .Where(x => x.UserId == user.Id);
 
             foreach (var finance in userFinancials)
             {

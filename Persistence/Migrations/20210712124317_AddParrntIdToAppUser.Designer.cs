@@ -10,8 +10,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210709053927_noKeyUserFinancial")]
-    partial class noKeyUserFinancial
+    [Migration("20210712124317_AddParrntIdToAppUser")]
+    partial class AddParrntIdToAppUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -46,8 +46,8 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HaveFinancialPackage")
-                        .HasColumnType("bit");
+                    b.Property<string>("IntroductionCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -68,6 +68,9 @@ namespace Persistence.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ParrentId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -242,15 +245,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "476e7b79-fd84-4447-9d5c-f6fb8598759b",
-                            ConcurrencyStamp = "16d3a608-d781-4d04-9d37-ac492861f8cb",
+                            Id = "06ba2103-2505-4f45-be58-9e7f5a5dd570",
+                            ConcurrencyStamp = "96700514-53ee-4378-ae10-26c06e92b8ba",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "b8d760eb-545a-4a8c-9bdd-20622c7eea2e",
-                            ConcurrencyStamp = "c4675cdb-a2d0-4a52-9aff-141cc96acf83",
+                            Id = "4eb04d49-bbba-4164-9a0a-328e3dba2468",
+                            ConcurrencyStamp = "89863624-babd-4945-9a7e-8f46f965e73c",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });

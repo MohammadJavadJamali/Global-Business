@@ -10,8 +10,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210708071412_initialCreate")]
-    partial class initialCreate
+    [Migration("20210712104847_AddRootIntroductionCodeToAppUser")]
+    partial class AddRootIntroductionCodeToAppUser
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -32,6 +32,9 @@ namespace Persistence.Migrations
                     b.Property<decimal>("AccountBalance")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
@@ -46,8 +49,8 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("HaveFinancialPackage")
-                        .HasColumnType("bit");
+                    b.Property<string>("IntroductionCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -81,6 +84,9 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("RegisterDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("RootIntroductionCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -92,6 +98,8 @@ namespace Persistence.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -188,10 +196,11 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Model.UserFinancialPackage", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("FinancialPackageId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("AmountInPackage")
                         .HasColumnType("decimal(18,2)");
@@ -202,20 +211,12 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("EndFinancialPackageDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("FinancialPackageId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "FinancialPackageId");
 
                     b.HasIndex("FinancialPackageId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("UserFinancialPackages");
                 });
@@ -249,15 +250,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "46a2eeb4-5f10-4184-b211-e806be79a7ed",
-                            ConcurrencyStamp = "a3d04069-a048-47c0-8ec5-50e3a78259f2",
+                            Id = "653f6eff-5107-4e6f-800e-407274a55bc5",
+                            ConcurrencyStamp = "9c489ede-f28b-4f41-811f-f8b468150a64",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "d453d54e-79b2-4294-847a-cff61a375e11",
-                            ConcurrencyStamp = "263fa1e9-84e3-4555-aaa2-8a9a29c3a3b3",
+                            Id = "de78d81f-66bb-4ab7-8c09-48c09f1fe577",
+                            ConcurrencyStamp = "439fca93-1a93-4f28-b31b-3b5d1dcad3ab",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -367,6 +368,13 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("Domain.Model.AppUser", b =>
+                {
+                    b.HasOne("Domain.Model.AppUser", null)
+                        .WithMany("AppUsers")
+                        .HasForeignKey("AppUserId");
+                });
+
             modelBuilder.Entity("Domain.Model.Profit", b =>
                 {
                     b.HasOne("Domain.Model.AppUser", "User")
@@ -395,7 +403,9 @@ namespace Persistence.Migrations
 
                     b.HasOne("Domain.Model.AppUser", "User")
                         .WithMany("UserFinancialPackages")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("FinancialPackage");
 
@@ -455,6 +465,8 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Model.AppUser", b =>
                 {
+                    b.Navigation("AppUsers");
+
                     b.Navigation("Profits");
 
                     b.Navigation("Transactions");

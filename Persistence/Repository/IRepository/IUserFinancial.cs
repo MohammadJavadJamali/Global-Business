@@ -16,6 +16,6 @@ namespace Persistence.Repository
 
         Task DeleteAsync(int id);
 
-        IEnumerable<UserFinancialPackage> Find(Expression<Func<UserFinancialPackage, bool>> expression);
+        IEnumerable<UserFinancialPackage> Where(Expression<Func<UserFinancialPackage, bool>> expression);
     }
 }

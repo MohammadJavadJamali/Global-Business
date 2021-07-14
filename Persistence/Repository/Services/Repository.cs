@@ -150,10 +150,16 @@ namespace Persistence.Repository
         }
 
         //Find records that have this experssion
-        public IEnumerable<T> Find(Expression<Func<T, bool>> expression)
+        public IEnumerable<T> Where(Expression<Func<T, bool>> expression)
         {
             return _context.Set<T>().Where(expression);
         }
+
+        public async Task<T> FindAsync(object id)
+        {
+            return await _context.Set<T>().FindAsync(id);
+        }
+
 
         /// <summary>
         /// Get all record . you can pass parameters in string format for include method .
@@ -171,6 +177,15 @@ namespace Persistence.Repository
             return await query.ToListAsync();
 
         }
+
+        /// <summary>
+        /// It has a similar function to the FirstOrDefaultAsync function
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <returns> a Entity </returns>
+        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression) =>
+            await _context.Set<T>().FirstOrDefaultAsync(expression);
+
 
 
         //Find record with id

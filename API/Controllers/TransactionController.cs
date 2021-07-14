@@ -1,6 +1,7 @@
 ﻿using System;
 using Domain.DTO;
 using Domain.Model;
+using Application.Helpers;
 using Persistence.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -46,18 +47,12 @@ namespace API.Controllers
             {
                 var currentUser = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
 
-                var targetUser = _user.FindUser(u => u.Email == transactionDTo.EmailTargetAccount);
+                var targetUser = await _user
+                    .FirstOrDefaultAsync(u => u.Email == transactionDTo.EmailTargetAccount);
 
                 if (currentUser.NormalizedEmail == targetUser.Email.ToUpper())
                 {
-                    Transaction transaction = new();
-
-                    transaction.Amount = transactionDTo.Amount;
-                    transaction.InitialBalance = currentUser.AccountBalance;
-
-                    transaction.FinalBalance = currentUser.AccountBalance + transactionDTo.Amount;
-                    transaction.User = currentUser;
-                    transaction.EmailTargetAccount = currentUser.Email;
+                    var transaction = MapTransactionHelper.MapTransaction(currentUser, transactionDTo);
 
                     await _transaction.CreateAsync(transaction);
 

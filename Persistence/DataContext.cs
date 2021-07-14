@@ -8,7 +8,7 @@ namespace Persistence
     public class DataContext : IdentityDbContext<AppUser>
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options)
-        { 
+        {
         }
 
         public DbSet<Transaction> Transactions { get; set; }
@@ -46,7 +46,6 @@ namespace Persistence
                 .HasOne(u => u.User)
                 .WithMany(t => t.Transactions)
                 .HasForeignKey(i => i.User_Id);
-
 
             ////relation between user and profit (one to many)
             modelBuilder.Entity<Profit>()

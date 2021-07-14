@@ -25,6 +25,7 @@ namespace Persistence.Repository
         public async Task<IEnumerable<Profit>> GetAll(Expression<Func<Profit, bool>> expression = null) =>
             await _repository.GetAll(expression);
 
+
         public async Task CreateAsync(Profit profit)
         {
             profit.ProfitDepositDate = DateTime.Now;

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Persistence.Migrations
 {
-    public partial class initialCreate : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -26,12 +26,13 @@ namespace Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IntroductionCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     AccountBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     RegisterDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    HaveFinancialPackage = table.Column<bool>(type: "bit", nullable: false),
+                    AppUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -50,6 +51,12 @@ namespace Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_AspNetUsers_AppUserId",
+                        column: x => x.AppUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -224,24 +231,22 @@ namespace Persistence.Migrations
                 name: "UserFinancialPackages",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FinancialPackageId = table.Column<int>(type: "int", nullable: false),
                     ChoicePackageDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndFinancialPackageDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     AmountInPackage = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    FinancialPackageId = table.Column<int>(type: "int", nullable: false)
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserFinancialPackages", x => x.Id);
+                    table.PrimaryKey("PK_UserFinancialPackages", x => new { x.UserId, x.FinancialPackageId });
                     table.ForeignKey(
                         name: "FK_UserFinancialPackages_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_UserFinancialPackages_FinancialPackages_FinancialPackageId",
                         column: x => x.FinancialPackageId,
@@ -253,12 +258,12 @@ namespace Persistence.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "46a2eeb4-5f10-4184-b211-e806be79a7ed", "a3d04069-a048-47c0-8ec5-50e3a78259f2", "Admin", "ADMIN" });
+                values: new object[] { "bb16d812-df12-4005-ad05-6f15415ad06c", "badf4aaa-5ac9-43c0-be3a-8b4003d40e1f", "Admin", "ADMIN" });
 
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "d453d54e-79b2-4294-847a-cff61a375e11", "263fa1e9-84e3-4555-aaa2-8a9a29c3a3b3", "Customer", "CUSTOMER" });
+                values: new object[] { "eee619ab-65db-4617-8ba6-c5934824a095", "caa7c8d2-e08c-4284-b4cb-3f114142ac55", "Customer", "CUSTOMER" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -293,6 +298,11 @@ namespace Persistence.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_AppUserId",
+                table: "AspNetUsers",
+                column: "AppUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -313,11 +323,6 @@ namespace Persistence.Migrations
                 name: "IX_UserFinancialPackages_FinancialPackageId",
                 table: "UserFinancialPackages",
                 column: "FinancialPackageId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserFinancialPackages_UserId",
-                table: "UserFinancialPackages",
-                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

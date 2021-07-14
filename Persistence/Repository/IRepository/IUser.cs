@@ -11,7 +11,9 @@ namespace Persistence.Repository
 
         Task<IEnumerable<AppUser>> GetAll(Expression<Func<AppUser, bool>> filter = null);
 
-        AppUser FindUser(Expression<Func<AppUser, bool>> expression);
+        IEnumerable<AppUser> Where(Expression<Func<AppUser, bool>> expression);
+
+        Task<AppUser> FirstOrDefaultAsync(Expression<Func<AppUser, bool>> expression);
 
         void UpdateAsync(AppUser entity);
     }

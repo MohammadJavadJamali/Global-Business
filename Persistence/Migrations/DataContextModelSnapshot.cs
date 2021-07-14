@@ -44,6 +44,9 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IntroductionCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -63,6 +66,9 @@ namespace Persistence.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ParentId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -237,15 +243,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "1d08c455-d564-4141-9665-b2f1378dd742",
-                            ConcurrencyStamp = "2f5e7666-b5d0-434c-87d2-ad4a9b167d97",
+                            Id = "ff66c58d-f181-42c4-89f6-1b1378d4bf87",
+                            ConcurrencyStamp = "93d22304-59ae-4fb5-b92e-c9e172768b0c",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "34a46d18-050c-4909-8e0f-313a9804b467",
-                            ConcurrencyStamp = "51a61552-4126-464e-bcec-b0fa96a3a83c",
+                            Id = "45bc3669-7aa6-447d-b92b-10321b92d68e",
+                            ConcurrencyStamp = "043446d5-416b-421f-b30c-7f3bab4a1277",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });

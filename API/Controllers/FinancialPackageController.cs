@@ -73,7 +73,7 @@ namespace API.Controllers
 
             try
             {
-                var res = await _financialPackage.Delete(id);
+                var res = await _financialPackage.DeleteAsync(id);
                 if (res)
                     return Ok();
                 else

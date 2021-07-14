@@ -10,8 +10,8 @@ using Persistence;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210711092323_addRelationShip")]
-    partial class addRelationShip
+    [Migration("20210712120733_DeleteAppUserSe")]
+    partial class DeleteAppUserSe
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -46,6 +46,9 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IntroductionCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -77,6 +80,9 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime>("RegisterDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RootIntroductionCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -239,15 +245,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "1d08c455-d564-4141-9665-b2f1378dd742",
-                            ConcurrencyStamp = "2f5e7666-b5d0-434c-87d2-ad4a9b167d97",
+                            Id = "54f46fd8-ccc6-4eb2-8b88-2846c4ce81d6",
+                            ConcurrencyStamp = "8510d7d8-1baa-4e61-9b39-b585e0c07b06",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "34a46d18-050c-4909-8e0f-313a9804b467",
-                            ConcurrencyStamp = "51a61552-4126-464e-bcec-b0fa96a3a83c",
+                            Id = "7bc778d5-45f8-4f0c-b71e-2471c7895f21",
+                            ConcurrencyStamp = "b6941682-e974-4486-ba9d-aa9bcaeeb294",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
