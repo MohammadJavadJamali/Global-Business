@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210715073232_addNodeTable1")]
+    partial class addNodeTable1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,13 +142,9 @@ namespace Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Nodes");
                 });
@@ -268,15 +266,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "9a116615-9a8a-447d-b772-708d482da3d6",
-                            ConcurrencyStamp = "82d393cc-f4de-4efd-9d3a-47803f274f0e",
+                            Id = "0aca8412-1b2e-4abf-a26b-8b8c5f884163",
+                            ConcurrencyStamp = "93572256-b4b5-4e3a-a7b1-d17bd8c1de11",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "7af1ad0c-358f-4279-8030-c25332263ef6",
-                            ConcurrencyStamp = "41a88110-214f-4811-ad62-d2c86d4e9798",
+                            Id = "cc6eb8d0-172f-4d08-994a-f479fa04bceb",
+                            ConcurrencyStamp = "90f5151f-be27-47d0-98fb-93f31a7af3ec",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -386,15 +384,6 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("Domain.Model.Node", b =>
-                {
-                    b.HasOne("Domain.Model.AppUser", "AppUser")
-                        .WithOne("Node")
-                        .HasForeignKey("Domain.Model.Node", "UserId");
-
-                    b.Navigation("AppUser");
-                });
-
             modelBuilder.Entity("Domain.Model.Profit", b =>
                 {
                     b.HasOne("Domain.Model.AppUser", "User")
@@ -485,8 +474,6 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Model.AppUser", b =>
                 {
-                    b.Navigation("Node");
-
                     b.Navigation("Profits");
 
                     b.Navigation("Transactions");

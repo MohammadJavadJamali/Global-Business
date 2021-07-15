@@ -18,7 +18,7 @@ namespace Domain.Model
         // about relation
         public string User_Id { get; set; }
 
-        public virtual AppUser User { get; set; }
+        public virtual AppUser User { get; set; } 
 
 
     }

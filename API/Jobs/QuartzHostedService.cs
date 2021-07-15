@@ -9,7 +9,7 @@ namespace API.Jobs
 {
     public class QuartzHostedService : IHostedService
     {
-        #region ctro and Properties
+        #region ctor and Properties
 
         private readonly IJobFactory _jobFactory;
         private readonly ISchedulerFactory _schedulerFactory;
@@ -70,6 +70,7 @@ namespace API.Jobs
                 .WithDescription(schedule.CronExpression)
                 .Build();
         }
+
         #endregion
     }
 }

@@ -1,10 +1,10 @@
 ﻿//Remember that the DepositProfit class does not use repository
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Persistence.Repository
 {
@@ -21,13 +21,13 @@ namespace Persistence.Repository
         }
 
         // Gets a table
-        public virtual IQueryable<T> Table => Entities;
+        public virtual IQueryable<T> Table => Entity;
 
         // Get a table with no tracking
-        public virtual IQueryable<T> TableNoTracking => Entities.AsNoTracking();
+        public virtual IQueryable<T> TableNoTracking => Entity.AsNoTracking();
 
         // Gets an entity set
-        protected virtual DbSet<T> Entities
+        protected virtual DbSet<T> Entity
         {
             get
             {
@@ -95,7 +95,7 @@ namespace Persistence.Repository
 
             try
             {
-                await _context.Set<T>().AddAsync(entity);
+                await Entity.AddAsync(entity);
                 _context.SaveChanges();
             }
             catch (DbUpdateException exception)
@@ -118,7 +118,7 @@ namespace Persistence.Repository
 
             try
             {
-                _context.Set<T>().Update(entity);
+                Entity.Update(entity);
                 _context.SaveChanges();
             }
             catch (Exception)
@@ -139,8 +139,21 @@ namespace Persistence.Repository
             {
                 var entity = await GetByIdAsync(id);
 
-                _context.Set<T>().Remove(entity);
-                _context.SaveChanges();
+                await DeleteAsync(entity);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(T entity)
+        {
+            try
+            {
+                Entity.Remove(entity);
+                await _context.SaveChangesAsync();
             }
             catch
             {
@@ -152,14 +165,8 @@ namespace Persistence.Repository
         //Find records that have this experssion
         public IEnumerable<T> Where(Expression<Func<T, bool>> expression)
         {
-            return _context.Set<T>().Where(expression);
+            return Entity.Where(expression);
         }
-
-        public async Task<T> FindAsync(object id)
-        {
-            return await _context.Set<T>().FindAsync(id);
-        }
-
 
         /// <summary>
         /// Get all record . you can pass parameters in string format for include method .
@@ -167,31 +174,49 @@ namespace Persistence.Repository
         /// </summary>
         /// <param name="includeProperties"></param>
         /// <returns>List of your entity with include field</returns>
-        public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null)
+        public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null
+            , Expression<Func<T, object>> expression = null)
         {
-            IQueryable<T> query = Entities;
+
+            IQueryable<T> query = Entity;
 
             if (filter != null)
                 query = query.Where(filter);
 
+            if (expression is not null)
+                query = query.Include(expression);
+
             return await query.ToListAsync();
 
         }
+
 
         /// <summary>
         /// It has a similar function to the FirstOrDefaultAsync function
         /// </summary>
         /// <param name="expression"></param>
         /// <returns> a Entity </returns>
-        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression) =>
-            await _context.Set<T>().FirstOrDefaultAsync(expression);
+        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression, Expression<Func<T, object>> criteria = null)
+        {
+
+            IQueryable<T> query = Entity;
+
+            if (criteria is not null)
+                query = query.Include(criteria);
+
+            return await query.FirstOrDefaultAsync(expression);
+        }
 
 
 
-        //Find record with id
+        /// <summary>
+        /// Find record with id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public async Task<T> GetByIdAsync(object id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            return await Entity.FindAsync(id);
         }
 
         //Dispose

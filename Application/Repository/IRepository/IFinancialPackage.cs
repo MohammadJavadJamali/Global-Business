@@ -14,6 +14,9 @@ namespace Persistence.Repository
 
         Task<IEnumerable<FinancialPackage>> GetAll(Expression<Func<FinancialPackage, bool>> expression = null);
 
+        Task<FinancialPackage> FirstOrDefaultAsync(Expression<Func<FinancialPackage, bool>> expression
+            , Expression<Func<FinancialPackage, object>> criteria);
+
         Task<FinancialPackage> GetByIdAsync(int id);
 
         void RemoveAsync(FinancialPackage entity);

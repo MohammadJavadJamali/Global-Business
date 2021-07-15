@@ -11,7 +11,7 @@ namespace Domain.Model
 
 
         public string User_Id { get; set; }
-        public AppUser User { get; set; }
+        public AppUser User { get; set; } = new();
 
     }
 }

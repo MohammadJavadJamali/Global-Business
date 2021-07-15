@@ -12,9 +12,14 @@ namespace Persistence.Repository
 
         Task<UserFinancialPackage> GetById(int id);
 
-        //Task<IEnumerable<UserFinancialPackage>> GetAll();
-
+        /// <summary>
+        /// delete entity from database
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         Task DeleteAsync(int id);
+
+        Task DeleteAsync(UserFinancialPackage entity);
 
         IEnumerable<UserFinancialPackage> Where(Expression<Func<UserFinancialPackage, bool>> expression);
     }

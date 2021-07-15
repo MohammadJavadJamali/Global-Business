@@ -42,6 +42,11 @@ namespace Persistence.Repository
             await _repository.DeleteAsync(id);
         }
 
+        public async Task DeleteAsync(UserFinancialPackage entity)
+        {
+            await _repository.DeleteAsync(entity);
+        }
+
         public IEnumerable<UserFinancialPackage> Where(Expression<Func<UserFinancialPackage, bool>> expression) =>
             _repository.Where(expression);
 

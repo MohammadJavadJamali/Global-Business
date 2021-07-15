@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210714112015_TotalMonyInFinancialPackagesInAppUsre")]
+    partial class TotalMonyInFinancialPackagesInAppUsre
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,6 +69,9 @@ namespace Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("ParentId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
@@ -81,6 +86,12 @@ namespace Persistence.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalMonyInFinancialPackages")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalMonyInSubBrache")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -121,34 +132,6 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FinancialPackages");
-                });
-
-            modelBuilder.Entity("Domain.Model.Node", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("LeftUserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ParentId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RightUserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
-
-                    b.ToTable("Nodes");
                 });
 
             modelBuilder.Entity("Domain.Model.Profit", b =>
@@ -268,15 +251,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "9a116615-9a8a-447d-b772-708d482da3d6",
-                            ConcurrencyStamp = "82d393cc-f4de-4efd-9d3a-47803f274f0e",
+                            Id = "aea9d212-24fc-4204-879d-9ba020f5fcdd",
+                            ConcurrencyStamp = "ca1ffc54-b416-4b06-a96f-dc58a622580b",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "7af1ad0c-358f-4279-8030-c25332263ef6",
-                            ConcurrencyStamp = "41a88110-214f-4811-ad62-d2c86d4e9798",
+                            Id = "d98a13c1-de12-47d6-812e-dcae9dccb07d",
+                            ConcurrencyStamp = "470306bb-8d69-43bd-9525-5f5bfb8ca392",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -386,15 +369,6 @@ namespace Persistence.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("Domain.Model.Node", b =>
-                {
-                    b.HasOne("Domain.Model.AppUser", "AppUser")
-                        .WithOne("Node")
-                        .HasForeignKey("Domain.Model.Node", "UserId");
-
-                    b.Navigation("AppUser");
-                });
-
             modelBuilder.Entity("Domain.Model.Profit", b =>
                 {
                     b.HasOne("Domain.Model.AppUser", "User")
@@ -485,8 +459,6 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Model.AppUser", b =>
                 {
-                    b.Navigation("Node");
-
                     b.Navigation("Profits");
 
                     b.Navigation("Transactions");

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Persistence.ModelBuilderConfigurations;
 
 namespace Persistence
 {
@@ -11,62 +12,31 @@ namespace Persistence
         {
         }
 
+        public DbSet<Node> Nodes { get; set; }
+
+        public DbSet<Profit> Profits { get; set; }
+
         public DbSet<Transaction> Transactions { get; set; }
 
         public DbSet<FinancialPackage> FinancialPackages { get; set; }
 
         public DbSet<UserFinancialPackage> UserFinancialPackages { get; set; }
 
-        public DbSet<Profit> Profits { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.ApplyConfiguration(new AppUserNode());
 
-            //add relation between AppUser and FinancialPackage(many to many)
+            modelBuilder.ApplyConfiguration(new AppUserFinancialPackage());
 
-            modelBuilder.Entity<UserFinancialPackage>()
-                .HasKey(k => new { k.UserId, k.FinancialPackageId });
+            modelBuilder.ApplyConfiguration(new AppUserTransaction());
 
-            modelBuilder.Entity<UserFinancialPackage>()
-                .HasOne(u => u.User)
-                .WithMany(uf => uf.UserFinancialPackages)
-                .HasForeignKey(ui => ui.UserId);
+            modelBuilder.ApplyConfiguration(new AppUserProfits());
 
-            modelBuilder.Entity<UserFinancialPackage>()
-                .HasOne(f => f.FinancialPackage)
-                .WithMany(uf => uf.UserFinancialPackages)
-                .HasForeignKey(fi => fi.FinancialPackageId);
-
-
-            //add relation between User and Transaction (one to many)
-            modelBuilder.Entity<Transaction>()
-                .HasOne(u => u.User)
-                .WithMany(t => t.Transactions)
-                .HasForeignKey(i => i.User_Id);
-
-            ////relation between user and profit (one to many)
-            modelBuilder.Entity<Profit>()
-                .HasOne(u => u.User)
-                .WithMany(p => p.Profits)
-                .HasForeignKey(u => u.User_Id);
-
-
-            modelBuilder.Entity<IdentityRole>()
-                .HasData(
-                    new IdentityRole
-                    {
-                        Name = "Admin",
-                        NormalizedName = "ADMIN"
-                    },
-                    new IdentityRole
-                    {
-                        Name = "Customer",
-                        NormalizedName = "CUSTOMER"
-                    }
-                );
+            modelBuilder.ApplyConfiguration(new RoolSeed());
+                
         }
     }
 }

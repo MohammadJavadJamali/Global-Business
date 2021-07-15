@@ -19,7 +19,7 @@ namespace Domain.Model
         public virtual AppUser User { get; set; }
 
         public int FinancialPackageId { get; set; }
-        public virtual FinancialPackage FinancialPackage { get; set; }
+        public virtual FinancialPackage FinancialPackage { get; set; } 
 
 
     }

@@ -12,5 +12,6 @@ namespace API.Jobs
             CronExpression = cronExpression;
             JobType = jobType;
         }
+
     }
 }

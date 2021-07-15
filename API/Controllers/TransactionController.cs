@@ -48,7 +48,7 @@ namespace API.Controllers
                 var currentUser = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
 
                 var targetUser = await _user
-                    .FirstOrDefaultAsync(u => u.Email == transactionDTo.EmailTargetAccount);
+                    .FirstOrDefaultAsync(u => u.Email == transactionDTo.EmailTargetAccount, null);
 
                 if (currentUser.NormalizedEmail == targetUser.Email.ToUpper())
                 {

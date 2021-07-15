@@ -5,10 +5,6 @@ namespace Domain.DTO
 {
     public class RegisterDto
     {
-        [Required]
-        [MaxLength(6)]
-        [MinLength(6)]
-        public string ParrentIntroductionCode { get; set; }
 
         [Required]
         [MaxLength(50)]
@@ -44,15 +40,10 @@ namespace Domain.DTO
         public string Password { get; set; }
 
         [Required]
-        [Range(minimum: 100000, 100000000000)]
-        [DataType(DataType.Currency)]
         public decimal AccountBalance { get; set; }
 
         [Required]
         public ICollection<string> Roles { get; set; }
-
-        [Required]
-        public int FinancialPackageId { get; set; }
 
     }
 }

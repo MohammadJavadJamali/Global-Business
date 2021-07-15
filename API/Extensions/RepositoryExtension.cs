@@ -8,12 +8,13 @@ namespace API.Extensions
 
         public static void AddRepositoryServices(this IServiceCollection services)
         {
+            services.AddScoped<IUser, UserService>();
+            services.AddScoped<IProfit, ProfitService>();
+            services.AddScoped<INodeRepository, NodeService>();
+            services.AddScoped<ITransaction, TransactionService>();
+            services.AddScoped<IUserFinancial, UserFinancialService>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IFinancialPackage, FinancialPackageService>();
-            services.AddScoped<ITransaction, TransactionService>();
-            services.AddScoped<IUser, UserService>();
-            services.AddScoped<IUserFinancial, UserFinancialService>();
-            services.AddScoped<IProfit, ProfitService>();
         }
 
     }

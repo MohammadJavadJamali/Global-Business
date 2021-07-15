@@ -19,12 +19,14 @@ namespace Persistence.Repository
         #endregion
 
 
-        public async Task<IEnumerable<AppUser>> GetAll(Expression<Func<AppUser, bool>> filter = null) =>
-            await _repository.GetAll(filter);
+        public async Task<IEnumerable<AppUser>> GetAll(Expression<Func<AppUser, bool>> filter = null
+                                                        , Expression<Func<AppUser, object>> expression = null) =>
+            await _repository.GetAll(filter, expression);
 
+        
 
-        public async Task<AppUser> FirstOrDefaultAsync(Expression<Func<AppUser, bool>> expression) =>
-            await _repository.FirstOrDefaultAsync(expression);
+        public async Task<AppUser> FirstOrDefaultAsync(Expression<Func<AppUser, bool>> expression, Expression<Func<AppUser, object>> criteria) =>
+            await _repository.FirstOrDefaultAsync(expression, criteria);
 
 
         public IEnumerable<AppUser> Where(Expression<Func<AppUser, bool>> expression)

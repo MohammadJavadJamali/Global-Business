@@ -10,14 +10,22 @@ namespace API.Extensions
     {
         public static void AddQuatzServices(this IServiceCollection services)
         {
-            services.AddSingleton<IJobFactory, SingletonJobFactory>();
-            services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
-
-            services.AddSingleton<DepositProfit>();
-            //0 0 12 * * ?          0/10 * * * * ?
-            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "0 0 0 * * ?"));
+            services.AddSingleton<QuartzJobRunner>();
 
             services.AddHostedService<QuartzHostedService>();
+
+            services.AddSingleton<IJobFactory, JobFactory>();
+            
+            services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
+
+
+            services.AddScoped<DepositProfit>();
+            //services.AddScoped<DepositCommission>();
+
+
+            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "0 0/2 * * * ?"));
+            //services.AddSingleton(new JobSchedule(jobType: typeof(DepositCommission), cronExpression: "0/40 * * * * ?"));
+
 
         }
 

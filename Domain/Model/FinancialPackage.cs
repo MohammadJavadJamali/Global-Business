@@ -10,7 +10,7 @@ namespace Domain.Model
         public int Term { get; set; }
 
 
-        public IList<UserFinancialPackage> UserFinancialPackages { get; set; }
+        public List<UserFinancialPackage> UserFinancialPackages { get; set; }
 
     }
 }

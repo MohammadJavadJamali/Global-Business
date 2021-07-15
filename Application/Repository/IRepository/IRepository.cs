@@ -11,19 +11,20 @@ namespace Persistence.Repository
 
         T Update(T entity);
 
-        Task<T> FindAsync(object id);
-
         Task<T> CreateAsync(T entity);
 
         Task<T> GetByIdAsync(object id);
 
-        //remove record from database
+        ///remove record from database
         Task<bool> DeleteAsync(object id);
+
+        Task<bool> DeleteAsync(T entity);
 
         IEnumerable<T> Where(Expression<Func<T, bool>> expression);
 
-        Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression);
+        Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression, Expression<Func<T, object>> criteria);
 
-        Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null);
+        Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null
+            , Expression<Func<T, object>> expression = null);
     }
 }

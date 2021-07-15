@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence;
 
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210715064557_addNodeTable")]
+    partial class addNodeTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,13 +132,7 @@ namespace Persistence.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("LeftUserId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ParentId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RightUserId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
@@ -212,6 +208,26 @@ namespace Persistence.Migrations
                     b.ToTable("Transactions");
                 });
 
+            modelBuilder.Entity("Domain.Model.Tree", b =>
+                {
+                    b.Property<int?>("LeftId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RightId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RootId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("LeftId");
+
+                    b.HasIndex("RightId");
+
+                    b.HasIndex("RootId");
+
+                    b.ToTable("Trees");
+                });
+
             modelBuilder.Entity("Domain.Model.UserFinancialPackage", b =>
                 {
                     b.Property<string>("UserId")
@@ -268,15 +284,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "9a116615-9a8a-447d-b772-708d482da3d6",
-                            ConcurrencyStamp = "82d393cc-f4de-4efd-9d3a-47803f274f0e",
+                            Id = "d3916127-133c-493f-b81f-1e83f16afac9",
+                            ConcurrencyStamp = "399cefbb-f91b-497d-bbdb-93dd421a4cde",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "7af1ad0c-358f-4279-8030-c25332263ef6",
-                            ConcurrencyStamp = "41a88110-214f-4811-ad62-d2c86d4e9798",
+                            Id = "c5877c21-65f5-4610-9aa9-bcd4cfbbea01",
+                            ConcurrencyStamp = "d94425c2-dd37-4b28-89bf-a34d102cc063",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -411,6 +427,27 @@ namespace Persistence.Migrations
                         .HasForeignKey("User_Id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Model.Tree", b =>
+                {
+                    b.HasOne("Domain.Model.Node", "Left")
+                        .WithMany()
+                        .HasForeignKey("LeftId");
+
+                    b.HasOne("Domain.Model.Node", "Right")
+                        .WithMany()
+                        .HasForeignKey("RightId");
+
+                    b.HasOne("Domain.Model.Node", "Root")
+                        .WithMany()
+                        .HasForeignKey("RootId");
+
+                    b.Navigation("Left");
+
+                    b.Navigation("Right");
+
+                    b.Navigation("Root");
                 });
 
             modelBuilder.Entity("Domain.Model.UserFinancialPackage", b =>

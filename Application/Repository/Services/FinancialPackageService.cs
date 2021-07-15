@@ -91,6 +91,11 @@ namespace Persistence.Repository
                 throw;
             }
         }
+
+        public async Task<FinancialPackage> FirstOrDefaultAsync(Expression<Func<FinancialPackage, bool>> expression
+            , Expression<Func<FinancialPackage, object>> criteria) =>
+            await _repository.FirstOrDefaultAsync(expression, criteria);
+
         #endregion
     }
 }
