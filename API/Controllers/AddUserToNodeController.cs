@@ -1,6 +1,7 @@
 ﻿using Domain.Model;
 using Domain.DTO.Node;
-using Persistence.Repository;
+using Application.Helpers;
+using Application.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -15,78 +16,207 @@ namespace API.Controllers
     [ApiController]
     public class AddUserToNodeController : ControllerBase
     {
+        #region Fields
 
+        private readonly ISave _save;
         private readonly IUser _user;
+        private readonly INode _node;
+        private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
-        private readonly INodeRepository _nodeRepository;
+        private readonly IFinancialPackage _financialPackage;
+
+        #endregion
+
+        #region Ctor
 
         public AddUserToNodeController(
               IUser user
-            , INodeRepository nodeRepository
-            , UserManager<AppUser> userManager)
+            , ISave save
+            , INode node
+            , IUserFinancial userFinancial
+            , UserManager<AppUser> userManager
+            , IFinancialPackage financialPackage)
         {
             _user = user;
-            _nodeRepository = nodeRepository;
+            _save = save;
+            _node = node;
             _userManager = userManager;
+            _userFinancial = userFinancial;
+            _financialPackage = financialPackage;
         }
+
+        #endregion
+
+        #region Methods
 
         [HttpPost]
         public async Task<ActionResult> CreateNode(CreateNodeDto createNodeDto)
         {
 
+            //Get parent of curent user by introduction code
             var parentUser = await _user
                 .FirstOrDefaultAsync(u => u.IntroductionCode == createNodeDto.IntroductionCode, b => b.Node);
 
-            if (parentUser.Node is null)
-                return BadRequest("parent user does not exist in set !");
-            
+            #region validation
 
+            if (parentUser.Node is null)
+                return BadRequest("Introduction code is invalid !");
+
+            #endregion
 
             var curentUser = await _userManager.Users.Include(u => u.Node)
                 .FirstOrDefaultAsync(f => f.Email == User.FindFirstValue(ClaimTypes.Email));
 
-            if (curentUser.Node.ParentId is not null)
-                return BadRequest("You in set !");
+            #region validation
 
+            if (curentUser is null)
+                return BadRequest("user not found !");
 
+            if (curentUser.Node is not null)
+                if (curentUser.Node.ParentId is not null)
+                    return BadRequest("You in set !");
 
-            if (parentUser.Node.LeftUserId == null)
+            #endregion
+
+            #region Create Node
+
+            if (parentUser.Node.LeftUserId is null)
             {
-                var node = MapNode(curentUser, parentUser);
-                await _nodeRepository.CreateAsync(node);
 
-                parentUser.Node.LeftUserId = curentUser.Id;
-                _user.UpdateAsync(parentUser);
+                var res = await CreateNode(isLeft: true, parentUser, curentUser, createNodeDto);
 
-                return Ok();
+                if (res)
+                    return Ok();
+                return BadRequest("Something is wrong !");
+
             }
-            else if(parentUser.Node.RightUserId == null)
+            else if (parentUser.Node.RightUserId == null)
             {
-                var node = MapNode(curentUser, parentUser);
-                await _nodeRepository.CreateAsync(node);
+                var res = await CreateNode(isLeft: false, parentUser, curentUser, createNodeDto);
 
-                parentUser.Node.RightUserId = curentUser.Id;
-                _user.UpdateAsync(parentUser);
-
-                return Ok();
+                if (res)
+                    return Ok();
+                return BadRequest("Something is wrong !");
             }
             else
             {
-                return BadRequest("Introduction code in complete");
+                return BadRequest("Introduction code is complete");
             }
 
+            #endregion
+
         }
 
-        private Node MapNode(AppUser user, AppUser parent)
+        #endregion
+
+        #region helper
+
+        private Node MapNode(AppUser user, AppUser parent, CreateNodeDto createNodeDto) =>
+            new Node()
+            {
+                AppUser = user,
+                LeftUserId = null,
+                RightUserId = null,
+                ParentId = parent.Id,
+                TotalMoneyInvested = createNodeDto.UserFinancialDTO.AmountInPackage
+            };
+
+
+        private async Task<bool> CreateNode(
+              bool isLeft
+            , AppUser parentUser
+            , AppUser curentUser
+            , CreateNodeDto createNodeDto)
         {
-            Node node = new();
-            node.AppUser = user;
-            node.ParentId = parent.Id;
-            node.LeftUserId = null;
-            node.RightUserId = null;
 
-            return node;
+            var curentNode = MapNode(curentUser, parentUser, createNodeDto);
+
+            //this is a helper method for create user financial package . location : Application -> Helpers
+            var res = await UserFinancialPackageHelper
+                .CreateUserFinancialPackage(
+                      curentUser
+                    , _userFinancial
+                    , createNodeDto.UserFinancialDTO
+                    , _financialPackage);
+
+            if (!res)
+                return false;
+
+            await _node.CreateAsync(curentNode);
+
+            if (isLeft)
+                parentUser.Node.LeftUserId = curentUser.Id;
+            else
+                parentUser.Node.RightUserId = curentUser.Id;
+
+            await _user.UpdateAsync(parentUser);
+
+            await _userManager.AddToRoleAsync(curentUser, "node");
+
+            await _save.SaveChangeAsync();
+
+            var parentNode = parentUser.Node;
+
+            parentNode.TotalMoneyInvestedBySubsets += createNodeDto.UserFinancialDTO.AmountInPackage;
+
+            parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
+
+            await _node.UpdateAsync(parentNode);
+
+            do
+            {
+                //this is the logined user (curent user) parent`s parent !
+                parentNode = await _node
+                    .FirstOrDefaultAsync(x => x.AppUser.Id == parentNode.ParentId, y => y.AppUser);
+
+                //If the current user is an Admin child(in one step); This condition applies
+                if (parentNode is null)
+                    return true;
+
+                parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
+
+                parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
+
+                parentNode.AppUser.CommissionPaid = false;
+
+                await _node.UpdateAsync(parentNode);
+
+
+            } while (parentNode.ParentId is not null);
+
+
+
+            return true;
         }
+
+
+        private async Task<decimal> MinimumSubBranch(Node node)
+        {
+
+            var leftNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.LeftUserId, y => y.AppUser);
+            var rightNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.RightUserId, y => y.AppUser);
+
+            if (rightNode is null)
+                return 0;
+
+            if (leftNode.LeftUserId is null && rightNode.LeftUserId is null)
+            {
+                return
+                    leftNode.TotalMoneyInvested > rightNode.TotalMoneyInvested ?
+                    rightNode.TotalMoneyInvested : leftNode.TotalMoneyInvested;
+            }
+            else if (leftNode.LeftUserId is not null || rightNode.LeftUserId is not null)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets > rightNode.TotalMoneyInvestedBySubsets ?
+                    rightNode.TotalMoneyInvestedBySubsets : leftNode.TotalMoneyInvestedBySubsets;
+            }
+            else
+                return 0;
+
+        }
+
+        #endregion
 
     }
 }

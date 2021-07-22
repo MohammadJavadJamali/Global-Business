@@ -4,11 +4,36 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public interface IUserFinancial
     {
+        /// <summary>
+        /// create and save at that moment
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         Task CreateAsync(UserFinancialPackage entity);
+
+        /// <summary>
+        /// create without save
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        Task Create(UserFinancialPackage entity);
+
+        /// <summary>
+        /// update and save at the moment
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        Task UpdateAsync(UserFinancialPackage entity);
+
+        /// <summary>
+        /// update without save
+        /// </summary>
+        /// <param name="entity"></param>
+        void Update(UserFinancialPackage entity);
 
         Task<UserFinancialPackage> GetById(int id);
 

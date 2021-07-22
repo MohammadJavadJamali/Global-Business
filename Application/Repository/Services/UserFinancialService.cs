@@ -5,19 +5,26 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public class UserFinancialService : IUserFinancial
     {
-        #region constructor and fields
+        #region Fields
 
         private readonly IRepository<UserFinancialPackage> _repository;
+
+        #endregion
+
+        #region Ctro
+
         public UserFinancialService(IRepository<UserFinancialPackage> repository)
         {
             _repository = repository;
         }
 
         #endregion
+
+        #region Methods
 
         public virtual async Task CreateAsync(UserFinancialPackage entity)
         {
@@ -26,9 +33,39 @@ namespace Persistence.Repository
 
             entity.ChoicePackageDate = DateTime.Now;
             entity.EndFinancialPackageDate = DateTime.Now.AddMonths(entity.FinancialPackage.Term);
+            entity.DayCount = (entity.EndFinancialPackageDate - entity.ChoicePackageDate).Days;
 
             await _repository.CreateAsync(entity);
 
+        }
+
+
+        public virtual async Task Create(UserFinancialPackage entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException();
+
+            entity.ChoicePackageDate = DateTime.Now;
+            entity.EndFinancialPackageDate = DateTime.Now.AddMonths(entity.FinancialPackage.Term);
+            entity.DayCount = (entity.EndFinancialPackageDate - entity.ChoicePackageDate).Days;
+
+            await _repository.Create(entity);
+
+        }
+
+        public void Update(UserFinancialPackage entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException();
+
+            _repository.Update(entity);
+        }
+        public virtual async Task UpdateAsync(UserFinancialPackage entity)
+        {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity));
+
+            await _repository.UpdateAsync(entity);
         }
 
         public async Task<UserFinancialPackage> GetById(int id) =>
@@ -50,5 +87,6 @@ namespace Persistence.Repository
         public IEnumerable<UserFinancialPackage> Where(Expression<Func<UserFinancialPackage, bool>> expression) =>
             _repository.Where(expression);
 
+        #endregion
     }
 }

@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public interface IUser
     {
 
         Task<IEnumerable<AppUser>> GetAll(Expression<Func<AppUser, bool>> filter = null
-            , Expression<Func<AppUser, object>> expression = null);
+            , Expression<Func<AppUser, object>> include = null);
 
         IEnumerable<AppUser> Where(Expression<Func<AppUser, bool>> expression);
 
@@ -18,10 +18,14 @@ namespace Persistence.Repository
         /// first expression for FirstOrDefult query and secound for include query 
         /// </summary>
         /// <param name="expression"></param>
-        /// <param name="criteria"></param>
+        /// <param name="include"></param>
         /// <returns>app user with included to said entity</returns>
-        Task<AppUser> FirstOrDefaultAsync(Expression<Func<AppUser, bool>> expression, Expression<Func<AppUser, object>> criteria);
+        Task<AppUser> FirstOrDefaultAsync(
+            Expression<Func<AppUser, bool>> expression
+            , Expression<Func<AppUser, object>> include = null);
 
-        void UpdateAsync(AppUser entity);
+        Task UpdateAsync(AppUser entity);
+
+        void Update(AppUser entity);
     }
 }

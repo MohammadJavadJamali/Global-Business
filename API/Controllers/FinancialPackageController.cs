@@ -2,7 +2,7 @@
 using AutoMapper;
 using Domain.Model;
 using System.Text.Json;
-using Persistence.Repository;
+using Application.Repository;
 using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +16,12 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class FinancialPackageController : ControllerBase
     {
-        #region constructor and fields
-
+        #region Fields
         private readonly IMapper _mapper;
         private readonly IFinancialPackage _financialPackage;
+        #endregion
 
+        #region Ctor
         public FinancialPackageController(
               IMapper mapper
             , IFinancialPackage financialPackage)
@@ -28,9 +29,7 @@ namespace API.Controllers
             _mapper = mapper;
             _financialPackage = financialPackage;
         }
-
         #endregion
-
 
         [HttpGet]
         public ActionResult<IEnumerable<FinancialPackage>> GetFinancials()
@@ -99,7 +98,7 @@ namespace API.Controllers
 
             try
             {
-                _financialPackage.UpdateAsync(financialPackageFromDb);
+                await _financialPackage.UpdateAsync(financialPackageFromDb);
                 return Ok();
             }
             catch (Exception)

@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace API.Extensions
 {
     public static class QuartzExtension
-    {
+    {   
         public static void AddQuatzServices(this IServiceCollection services)
         {
             services.AddSingleton<QuartzJobRunner>();
@@ -20,11 +20,13 @@ namespace API.Extensions
 
 
             services.AddScoped<DepositProfit>();
-            //services.AddScoped<DepositCommission>();
+            services.AddScoped<DepositCommission>();
 
+            //every night at 12:00 PM
+            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "35 54 13 * * ?"));
 
-            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "0 0/2 * * * ?"));
-            //services.AddSingleton(new JobSchedule(jobType: typeof(DepositCommission), cronExpression: "0/40 * * * * ?"));
+            //every month at 01 / 00 / 0000 12:00 PM
+            services.AddSingleton(new JobSchedule(jobType: typeof(DepositCommission), cronExpression: "50 16 13 * * ?"));
 
 
         }

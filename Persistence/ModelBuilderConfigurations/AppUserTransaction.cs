@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 
-namespace Persistence.ModelBuilderConfigurations
+namespace Application.ModelBuilderConfigurations
 {
     public class AppUserTransaction : IEntityTypeConfiguration<Transaction>
     {

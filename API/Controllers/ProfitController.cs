@@ -1,8 +1,7 @@
 ﻿using Domain.DTO;
-using System.Linq;
 using Domain.Model;
 using System.Text.Json;
-using Persistence.Repository;
+using Application.Repository;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -16,10 +15,13 @@ namespace API.Controllers
     public class ProfitController : ControllerBase
     {
 
-        #region constructor and fields
+        #region Fields
 
         private readonly IProfit _profit;
 
+        #endregion
+
+        #region Ctor
         public ProfitController(IProfit profit)
         {
             _profit = profit;

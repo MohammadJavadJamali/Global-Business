@@ -2,7 +2,7 @@
 using Domain.DTO;
 using Domain.Model;
 using Application.Helpers;
-using Persistence.Repository;
+using Application.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -16,20 +16,24 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class TransactionController : ControllerBase
     {
-        #region constructor and fields
-
+        #region Fields
+        private readonly ISave _save;
         private readonly IUser _user;
         private readonly ITransaction _transaction;
         private readonly UserManager<AppUser> _userManager;
 
+        #endregion
+
+        #region Ctor
         public TransactionController(
               IUser user
             , ITransaction transaction
-            , UserManager<AppUser> userManager)
+            , UserManager<AppUser> userManager, ISave save)
         {
             _user = user;
             _transaction = transaction;
             _userManager = userManager;
+            _save = save;
         }
 
         #endregion
@@ -52,47 +56,24 @@ namespace API.Controllers
 
                 if (currentUser.NormalizedEmail == targetUser.Email.ToUpper())
                 {
-                    var transaction = MapTransactionHelper.MapTransaction(currentUser, transactionDTo);
 
-                    await _transaction.CreateAsync(transaction);
-
-                    currentUser.AccountBalance = currentUser.AccountBalance + transactionDTo.Amount;
-
-                    _user.UpdateAsync(currentUser);
-
+                    TransactionHelper.CreateTransaction(_user, currentUser, transactionDTo.Amount, _transaction);
+                    await _save.SaveChangeAsync();
                 }
                 else
                 {
-                    #region Map Objects
-                    var transactionForCurrentUser = new Transaction();
-                    transactionForCurrentUser.Amount = -1 * transactionDTo.Amount;
-                    transactionForCurrentUser.InitialBalance = currentUser.AccountBalance;
-                    transactionForCurrentUser.FinalBalance = currentUser.AccountBalance - transactionDTo.Amount;
-                    transactionForCurrentUser.EmailTargetAccount = transactionDTo.EmailTargetAccount;
-                    transactionForCurrentUser.User = currentUser;
 
-                    var transactionForTagetUser = new Transaction();
-                    transactionForTagetUser.Amount = transactionDTo.Amount;
-                    transactionForTagetUser.InitialBalance = targetUser.AccountBalance;
-                    transactionForTagetUser.FinalBalance = targetUser.AccountBalance + transactionDTo.Amount;
-                    transactionForTagetUser.EmailTargetAccount = currentUser.Email;
-                    transactionForTagetUser.User = targetUser;
-                    #endregion
-
-                    await _transaction.CreateAsync(transactionForCurrentUser);
-                    await _transaction.CreateAsync(transactionForTagetUser);
-
-                    currentUser.AccountBalance -= transactionDTo.Amount; 
-                    targetUser.AccountBalance += transactionDTo.Amount;
-
-                    _user.UpdateAsync(currentUser);
-                    _user.UpdateAsync(targetUser);
+                    TransactionHelper.CreateTransaction(_user, currentUser, -1 * transactionDTo.Amount, _transaction);
+                 
+                    TransactionHelper.CreateTransaction(_user, targetUser, transactionDTo.Amount, _transaction);
+                    
+                    await _save.SaveChangeAsync();
                 }
 
                 return Ok();
 
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }

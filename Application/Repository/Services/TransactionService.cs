@@ -5,17 +5,23 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public class TransactionService : ITransaction
     {
-        #region constructor and fields
+        #region Fields
 
         private readonly IRepository<Transaction> _repository;
+
+        #endregion
+
+        #region Ctro
+
         public TransactionService(IRepository<Transaction> repository)
         {
             _repository = repository;
         }
+
 
         #endregion
 
@@ -29,9 +35,19 @@ namespace Persistence.Repository
             entity.TransactionDate = DateTime.Now;
             await _repository.CreateAsync(entity);
         }
+        public void Create(Transaction entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
 
-        public async Task<IEnumerable<Transaction>> GetAll(Expression<Func<Transaction, bool>> expression = null) =>
-            await _repository.GetAll(expression);
+            entity.TransactionDate = DateTime.Now;
+            _repository.Create(entity);
+        }
+
+        public async Task<IEnumerable<Transaction>> GetAll(
+            Expression<Func<Transaction, bool>> expression = null,
+            Expression<Func<Transaction, object>> include = null) =>
+            await _repository.GetAll(expression, include);
 
         public async Task<Transaction> GetByIdAsync(int id)
         {
@@ -40,6 +56,8 @@ namespace Persistence.Repository
             return await _repository.GetByIdAsync(id);
         }
 
+
         #endregion
+
     }
 }

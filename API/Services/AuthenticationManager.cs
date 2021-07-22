@@ -14,15 +14,22 @@ namespace API.Services
 {
     public class AuthenticationManager : IAuthenticationManager
     {
+        #region Fields
         private AppUser _user;
         private readonly IConfiguration _config;
         private readonly UserManager<AppUser> _userManager;
+        #endregion
 
-        public AuthenticationManager(IConfiguration config, UserManager<AppUser> userManager)
+        #region Ctro
+        public AuthenticationManager(
+              IConfiguration config
+            , UserManager<AppUser> userManager)
         {
             _config = config;
             _userManager = userManager;
         }
+        #endregion
+
         public async Task<AppUser> GetCurrentUser(LoginDto loginDto) =>
             await _userManager.FindByEmailAsync(loginDto.Email);
 

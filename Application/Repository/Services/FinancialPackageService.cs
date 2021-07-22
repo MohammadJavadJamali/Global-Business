@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public class FinancialPackageService : IFinancialPackage
     {
-        #region constructor and fields
+        #region Fields
         private readonly IRepository<FinancialPackage> _repository;
+        #endregion
 
-        // Main Constructor
+        #region Ctro
         public FinancialPackageService(IRepository<FinancialPackage> repository)
         {
             _repository = repository;
@@ -31,9 +32,15 @@ namespace Persistence.Repository
             await _repository.CreateAsync(entity);
         }
 
+        public async Task Create(FinancialPackage entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
 
-        // Update given entity
-        public virtual void UpdateAsync(FinancialPackage entity)
+            await _repository.Create(entity);
+        }
+
+        public void Update(FinancialPackage entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
@@ -41,11 +48,22 @@ namespace Persistence.Repository
             _repository.Update(entity);
         }
 
+        // Update given entity
+        public virtual async Task UpdateAsync(FinancialPackage entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            await _repository.UpdateAsync(entity);
+        }
+
 
         // Get's All entities 
-        public async Task<IEnumerable<FinancialPackage>> GetAll(Expression<Func<FinancialPackage, bool>> expression = null)
+        public async Task<IEnumerable<FinancialPackage>> GetAll(
+            Expression<Func<FinancialPackage, bool>> expression = null,
+            Expression<Func<FinancialPackage, object>> include = null)
         {
-            var financial = await _repository.GetAll(expression);
+            var financial = await _repository.GetAll(expression, include);
             return financial.Where(x => x.IsDeleted == false);
         }
 
@@ -78,13 +96,13 @@ namespace Persistence.Repository
         }
 
         // Remove by remove state
-        public void RemoveAsync(FinancialPackage entity)
+        public async Task RemoveAsync(FinancialPackage entity)
         {
             try
             {
                 entity.IsDeleted = true;
 
-                _repository.Update(entity);
+                await _repository.UpdateAsync(entity);
             }
             catch (Exception)
             {
@@ -92,9 +110,11 @@ namespace Persistence.Repository
             }
         }
 
-        public async Task<FinancialPackage> FirstOrDefaultAsync(Expression<Func<FinancialPackage, bool>> expression
-            , Expression<Func<FinancialPackage, object>> criteria) =>
-            await _repository.FirstOrDefaultAsync(expression, criteria);
+        public async Task<FinancialPackage> FirstOrDefaultAsync(
+              Expression<Func<FinancialPackage, bool>> expression
+            , Expression<Func<FinancialPackage, object>> include = null) =>
+                await _repository.FirstOrDefaultAsync(expression, include);
+
 
         #endregion
     }

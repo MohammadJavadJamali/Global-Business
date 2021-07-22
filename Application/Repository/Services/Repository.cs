@@ -6,19 +6,27 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        #region Properties and constructor
+        #region Fields
 
         private DbSet<T> _entities;
         private readonly DataContext _context;
+
+        #endregion
+
+        #region Ctro
 
         public Repository(DataContext context)
         {
             _context = context;
         }
+
+        #endregion
+
+        #region Properties
 
         // Gets a table
         public virtual IQueryable<T> Table => Entity;
@@ -83,6 +91,7 @@ namespace Persistence.Repository
 
         #region Methods
 
+
         /// <summary>
         /// Create a entity 
         /// </summary>
@@ -96,7 +105,7 @@ namespace Persistence.Repository
             try
             {
                 await Entity.AddAsync(entity);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateException exception)
             {
@@ -104,13 +113,27 @@ namespace Persistence.Repository
             }
             return entity;
         }
+        public async Task Create(T entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            try
+            {
+                 await Entity.AddAsync(entity);
+            }
+            catch (DbUpdateException exception)
+            {
+                throw new Exception(await GetFullErrorTextAndRollbackEntityChangesAsync(exception), exception);
+            }
+        }
 
         /// <summary>
         /// Update a entity
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public T Update(T entity)
+        public async Task<T> UpdateAsync(T entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
@@ -119,13 +142,28 @@ namespace Persistence.Repository
             try
             {
                 Entity.Update(entity);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (Exception)
             {
                 throw new DbUpdateException();
             }
             return entity;
+        }
+
+        public void Update(T entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            try
+            {
+                Entity.Update(entity);
+            }
+            catch (Exception)
+            {
+                throw new DbUpdateException();
+            }
         }
 
         /// <summary>
@@ -174,17 +212,19 @@ namespace Persistence.Repository
         /// </summary>
         /// <param name="includeProperties"></param>
         /// <returns>List of your entity with include field</returns>
-        public async Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null
-            , Expression<Func<T, object>> expression = null)
+        public async Task<IEnumerable<T>> GetAll(
+            Expression<Func<T, bool>> filter = null,
+            Expression<Func<T, object>> include = null)
         {
 
-            IQueryable<T> query = Entity;
+            IQueryable<T> query = _context.Set<T>();
+
+            if(include is not null)
+                query = query.Include(include);
+
 
             if (filter != null)
                 query = query.Where(filter);
-
-            if (expression is not null)
-                query = query.Include(expression);
 
             return await query.ToListAsync();
 
@@ -196,15 +236,18 @@ namespace Persistence.Repository
         /// </summary>
         /// <param name="expression"></param>
         /// <returns> a Entity </returns>
-        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression, Expression<Func<T, object>> criteria = null)
+        public async Task<T> FirstOrDefaultAsync(
+            Expression<Func<T, bool>> expression,
+            Expression<Func<T, object>> include = null)
         {
 
             IQueryable<T> query = Entity;
 
-            if (criteria is not null)
-                query = query.Include(criteria);
+            if (include is not null)
+                query = query.Include(include);
 
             return await query.FirstOrDefaultAsync(expression);
+
         }
 
 
@@ -224,6 +267,7 @@ namespace Persistence.Repository
         {
             _context.Dispose();
         }
+
 
         #endregion
     }

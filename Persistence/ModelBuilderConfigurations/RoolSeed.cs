@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Persistence.ModelBuilderConfigurations
+namespace Application.ModelBuilderConfigurations
 {
     public class RoolSeed : IEntityTypeConfiguration<IdentityRole>
     {
@@ -19,6 +19,11 @@ namespace Persistence.ModelBuilderConfigurations
                     {
                         Name = "Customer",
                         NormalizedName = "CUSTOMER"
+                    },
+                    new IdentityRole
+                    {
+                        Name = "Node",
+                        NormalizedName = "NODE"
                     }
                 );
         }

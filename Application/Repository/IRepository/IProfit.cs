@@ -4,11 +4,17 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public interface IProfit
     {
         Task CreateAsync(Profit profit);
-        Task<IEnumerable<Profit>> GetAll(Expression<Func<Profit, bool>> expression = null);
+
+        Task Create(Profit profit);
+
+        Task<IEnumerable<Profit>> GetAll(
+            Expression<Func<Profit, bool>> expression = null,
+            Expression<Func<Profit, object>> include = null);
+
     }
 }

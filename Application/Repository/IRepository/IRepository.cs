@@ -3,15 +3,17 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public interface IRepository<T> : IDisposable where T : class
     {
                                      
 
-        T Update(T entity);
+        Task<T> UpdateAsync(T entity);
+        void Update(T entity);
 
         Task<T> CreateAsync(T entity);
+        Task Create(T entity);
 
         Task<T> GetByIdAsync(object id);
 
@@ -22,9 +24,12 @@ namespace Persistence.Repository
 
         IEnumerable<T> Where(Expression<Func<T, bool>> expression);
 
-        Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> expression, Expression<Func<T, object>> criteria);
+        Task<T> FirstOrDefaultAsync(
+            Expression<Func<T, bool>> expression = null
+          , Expression<Func<T, object>> includes = null);
 
-        Task<IEnumerable<T>> GetAll(Expression<Func<T, bool>> filter = null
-            , Expression<Func<T, object>> expression = null);
+        Task<IEnumerable<T>> GetAll(
+            Expression<Func<T, bool>> filter = null
+          , Expression<Func<T, object>> includes = null);
     }
 }

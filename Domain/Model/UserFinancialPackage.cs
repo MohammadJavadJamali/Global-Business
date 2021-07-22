@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Model
@@ -10,7 +9,14 @@ namespace Domain.Model
 
         public DateTime EndFinancialPackageDate { get; set; }
 
+        public int DayCount { get; set; }
+
+
+        [Column(TypeName = "decimal(18,4)")]
         public decimal AmountInPackage { get; set; }
+
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal ProfitAmountPerDay { get; set; }
 
         public bool IsDeleted { get; set; }
 

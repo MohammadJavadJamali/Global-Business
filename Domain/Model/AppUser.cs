@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 namespace Domain.Model
@@ -12,16 +13,21 @@ namespace Domain.Model
 
         public string FirstName { get; set; }
 
+        public bool CommissionPaid { get; set; }
+
         public List<Profit> Profits { get; set; }
 
         public DateTime RegisterDate { get; set; }
 
+        [Column(TypeName = "decimal(18,4)")]
         public decimal AccountBalance { get; set; }
 
         public string IntroductionCode { get; set; }
 
 
-        public Node Node { get; set; } = new();
+
+
+        public Node Node { get; set; }
 
         public virtual List<Transaction> Transactions { get; set; }
 

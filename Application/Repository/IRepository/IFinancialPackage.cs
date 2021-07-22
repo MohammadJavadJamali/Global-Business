@@ -4,24 +4,29 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
     public interface IFinancialPackage
-    {
+    { 
         Task CreateAsync(FinancialPackage entity);
+        Task Create(FinancialPackage entity);
 
         Task<bool> DeleteAsync(int id);
 
-        Task<IEnumerable<FinancialPackage>> GetAll(Expression<Func<FinancialPackage, bool>> expression = null);
+        Task<IEnumerable<FinancialPackage>> GetAll(
+              Expression<Func<FinancialPackage, bool>> expression = null
+            , Expression<Func<FinancialPackage, object>> include = null);
 
-        Task<FinancialPackage> FirstOrDefaultAsync(Expression<Func<FinancialPackage, bool>> expression
-            , Expression<Func<FinancialPackage, object>> criteria);
+        Task<FinancialPackage> FirstOrDefaultAsync(
+              Expression<Func<FinancialPackage, bool>> expression
+            , Expression<Func<FinancialPackage, object>> include = null);
 
         Task<FinancialPackage> GetByIdAsync(int id);
 
-        void RemoveAsync(FinancialPackage entity);
+        Task RemoveAsync(FinancialPackage entity);
 
-        void UpdateAsync(FinancialPackage entity);
+        Task UpdateAsync(FinancialPackage entity);
+        void Update(FinancialPackage entity);
 
     }
 }

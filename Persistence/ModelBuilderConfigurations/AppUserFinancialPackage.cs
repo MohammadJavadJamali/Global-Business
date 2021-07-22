@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Persistence.ModelBuilderConfigurations
+namespace Application.ModelBuilderConfigurations
 {
     public class AppUserFinancialPackage : IEntityTypeConfiguration<UserFinancialPackage>
     {
@@ -20,6 +20,8 @@ namespace Persistence.ModelBuilderConfigurations
                 .HasOne(f => f.FinancialPackage)
                 .WithMany(uf => uf.UserFinancialPackages)
                 .HasForeignKey(fi => fi.FinancialPackageId);
+
+
         }
     }
 }

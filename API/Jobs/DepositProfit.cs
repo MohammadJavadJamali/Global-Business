@@ -2,32 +2,39 @@
 using System;
 using System.Linq;
 using Domain.Model;
-using Persistence.Repository;
+using Application.Repository;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using Application.Helpers;
+using System.Diagnostics;
 
 namespace API.Jobs
 {
     [DisallowConcurrentExecution]
     public class DepositProfit : IJob
     {
-        #region ctor
+        #region Fields
+        private readonly ISave _save;
         private readonly IUser _user;
         private readonly IProfit _profit;
         private readonly ITransaction _transaction;
         private readonly IUserFinancial _userFinancial;
         private readonly ILogger<DepositProfit> _logger;
         private readonly IFinancialPackage _financialPackage;
+        #endregion
 
+        #region Ctro
         public DepositProfit(
-              IUser user
+              ISave save
+            , IUser user
             , IProfit profit
             , ITransaction transaction
             , IUserFinancial userFinancial
             , ILogger<DepositProfit> logger
             , IFinancialPackage financialPackage)
         {
+            _save = save;
             _user = user;
             _logger = logger;
             _profit = profit;
@@ -40,8 +47,14 @@ namespace API.Jobs
         #region work
         public async Task Execute(IJobExecutionContext context)
         {
+            var watch = new Stopwatch();
+            watch.Start();
+
             await CalculateProfitAmountPerDayForEachUser();
-            _logger.LogInformation("Profit from financial packages was deposited!");
+
+            watch.Stop();
+
+            _logger.LogInformation($"Profit from financial packages was deposited in {watch.ElapsedMilliseconds} ms!");
         }
         #endregion
 
@@ -65,31 +78,39 @@ namespace API.Jobs
                 {
                     if (!IsEndFinancialPackage(UF))
                     {
-                        decimal profitAmount = 0;
-                        decimal profitAmountPerDay = 0;
+                        //decimal profitAmount = 0;
+                        //decimal profitAmountPerDay = 0;
 
-                        var financialPackage = await GetFinancialPackage(UF);
+                        //var financialPackage = await GetFinancialPackage(UF);
 
-                        profitAmount += UF.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
+                        //profitAmount += UF.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
 
-                        double FinancialPackageDay = GetFinancialPackageDay(UF);
+                        ////double FinancialPackageDay = GetFinancialPackageDay(UF);
 
-                        profitAmountPerDay += profitAmount / (decimal)FinancialPackageDay;
+                        //int FinancialPackageDay = UF.DayCount;
 
-                        await CreateTransaction(user, profitAmountPerDay);
-                        await CreateProfit(user, profitAmountPerDay);
+                        //profitAmountPerDay += profitAmount / FinancialPackageDay;
+
+                        var profitAmountPerDay = UF.ProfitAmountPerDay;
+
+                        TransactionHelper.CreateTransaction(_user, user, profitAmountPerDay, _transaction);
+                        await ProfitHelper.CreateProfit(user, _profit, profitAmountPerDay);
+
+                        _logger.LogInformation($"profit amount per day : {profitAmountPerDay}");
+
                     }
                     else
                     {
                         await _userFinancial.DeleteAsync(UF);
-
-                        //context.UserFinancialPackages.Remove(UF);
-                        //context.Users.Update(user);
-                        //await context.SaveChangesAsync();
+                        _logger.LogInformation($"delete user financial package");
                     }
+                    if (userFinancialPackages.Count is 0)
+                        break;
                 }
-
             }
+
+            await _save.SaveChangeAsync();
+
         }
 
 
@@ -108,12 +129,10 @@ namespace API.Jobs
         /// <param name="context"></param>
         /// <param name="UF"></param>
         /// <returns></returns>
-        private async Task<FinancialPackage> GetFinancialPackage(UserFinancialPackage uf)
-        {
-            var financial = await _financialPackage
+        private async Task<FinancialPackage> GetFinancialPackage(UserFinancialPackage uf) =>
+            await _financialPackage
                 .FirstOrDefaultAsync(x => x.Id == uf.FinancialPackageId, y => y.UserFinancialPackages);
-            return financial;
-        }
+
 
 
         /// <summary>
@@ -121,63 +140,18 @@ namespace API.Jobs
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private async Task<List<AppUser>> GetAllUsers()
-        {
-            var users = await _user.GetAll(x => x.UserFinancialPackages.Count() > 0, y => y.UserFinancialPackages);
-            return users.ToList();
-        }
+        private async Task<IEnumerable<AppUser>> GetAllUsers() =>
+            await _user.GetAll(x => x.UserFinancialPackages.Count() > 0, y => y.UserFinancialPackages);
 
 
-        /// <summary>
-        /// Calculates the number of days in a financial package
-        /// </summary>
-        /// <param name="UF"></param>
-        /// <returns></returns>
-        private double GetFinancialPackageDay(UserFinancialPackage UF) =>
-            (UF.EndFinancialPackageDate - UF.ChoicePackageDate).TotalDays;
+        ///// <summary>
+        ///// Calculates the number of days in a financial package
+        ///// </summary>
+        ///// <param name="UF"></param>
+        ///// <returns></returns>
+        //private double GetFinancialPackageDay(UserFinancialPackage UF) =>
+        //    (UF.EndFinancialPackageDate - UF.ChoicePackageDate).TotalDays;
 
-
-        /// <summary>
-        /// Creates a transaction to pay profit
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="transactionAmount"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private async Task CreateTransaction(AppUser user, decimal transactionAmount)
-        {
-            Transaction transaction = new();
-            //transaction date set in CreteAsync method
-            transaction.User = user;
-            transaction.Amount = transactionAmount;
-            transaction.EmailTargetAccount = user.Email;
-            transaction.InitialBalance = user.AccountBalance;
-            transaction.FinalBalance = user.AccountBalance + transactionAmount;
-
-            user.AccountBalance += transactionAmount;
-
-            await _transaction.CreateAsync(transaction);
-
-            _user.UpdateAsync(user);
-
-        }
-
-
-        /// <summary>
-        /// A profit is created for the user 
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="profitAmount"></param>
-        /// <returns></returns>
-        private async Task CreateProfit(AppUser user, decimal profitAmount)
-        {
-            Profit profit = new();
-            //date time set in CreateAsync method
-            profit.User = user;
-            profit.ProfitAmount = profitAmount;
-
-            await _profit.CreateAsync(profit);
-        }
         #endregion
     }
 }

@@ -5,7 +5,7 @@ using API.Services;
 using Domain.Model;
 using System.Text.Json;
 using Application.Helpers;
-using Persistence.Repository;
+using Application.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -24,35 +24,24 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class AcountController : ControllerBase
     {
+        #region Fields
 
-        #region constructor and fields
-
-        private readonly IUser _user;
-        private readonly IProfit _profit;
-        private readonly ITransaction _transaction;
-        private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IFinancialPackage _financialPackage;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IAuthenticationManager _authenticationManager;
 
+        #endregion
+
+        #region Ctor
+
         public AcountController(
-              IUser user
-            , IProfit profit
-            , IUserFinancial userFinancial
-            , UserManager<AppUser> userManager
-            , ITransaction transaction
-            , IFinancialPackage financialPackage
+              UserManager<AppUser> userManager
             , RoleManager<IdentityRole> roleManager
             , IAuthenticationManager authenticationManager)
         {
-            _user = user;
-            _profit = profit;
+            
             _userManager = userManager;
             _roleManager = roleManager;
-            _transaction = transaction;
-            _userFinancial = userFinancial;
-            _financialPackage = financialPackage;
             _authenticationManager = authenticationManager;
         }
 

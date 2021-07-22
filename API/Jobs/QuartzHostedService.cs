@@ -9,12 +9,16 @@ namespace API.Jobs
 {
     public class QuartzHostedService : IHostedService
     {
-        #region ctor and Properties
+        #region Fields and Properties
 
         private readonly IJobFactory _jobFactory;
         private readonly ISchedulerFactory _schedulerFactory;
         private readonly IEnumerable<JobSchedule> _jobSchedules;
 
+        public IScheduler Scheduler { get; set; }
+        #endregion
+
+        #region Ctro
         public QuartzHostedService(
               IJobFactory jobFactory
             , ISchedulerFactory schedulerFactory
@@ -24,7 +28,6 @@ namespace API.Jobs
             _jobSchedules = jobSchedules;
             _schedulerFactory = schedulerFactory;
         }
-        public IScheduler Scheduler { get; set; }
 
         #endregion
 

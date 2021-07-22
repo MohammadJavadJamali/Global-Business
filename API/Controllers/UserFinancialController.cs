@@ -1,32 +1,42 @@
 ﻿using Domain.Model;
-using Persistence.Repository;
+using Application.Helpers;
+using Application.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin, Node")]
     public class UserFinancialController : ControllerBase
     {
-        #region constructor and fields
+
+        #region Fields
+        private readonly ISave _save;
+        private readonly INode _node;
         private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
         private readonly IFinancialPackage _financialPackage;
+        #endregion
 
+        #region ctor
         public UserFinancialController(
-              IUserFinancial userFinancial
+              INode node
+            , IUserFinancial userFinancial
             , UserManager<AppUser> userManager
-            , IFinancialPackage financialPackage)
+            , IFinancialPackage financialPackage, ISave save)
         {
+            _node = node;
             _userManager = userManager;
             _userFinancial = userFinancial;
             _financialPackage = financialPackage;
+            _save = save;
         }
 
         #endregion
@@ -35,45 +45,45 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<UserFinancialPackage>> CreateUserFinance(UserFinancialDTO financialDTO)
         {
+
             if (!ModelState.IsValid)
                 return BadRequest("All filds are required");
 
-            var currentUser = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
+
+            var currentUser = await 
+                _userManager
+                .Users
+                .Include(n => n.Node)
+                .FirstOrDefaultAsync(u => u.Email == User.FindFirstValue(ClaimTypes.Email));
+
+            //var node = await _node.FirstOrDefaultAsync(x => x.UserId == currentUser.Id, u => u.AppUser);
+
+            //var parentNode = await _node
+            //    .FirstOrDefaultAsync(x => x.LeftUserId == node.UserId || x.RightUserId == node.UserId, u => u.AppUser);
+            
 
             if (currentUser == null)
                 return BadRequest("Email in not exist!");
 
+            var res = await UserFinancialPackageHelper
+                .CreateUserFinancialPackage(currentUser, _userFinancial, financialDTO, _financialPackage);
 
-            var financialPackageFromDb = await _financialPackage.GetByIdAsync(financialDTO.FinancialPackageId);
-            if(financialPackageFromDb == null)
-                return BadRequest("invalid financial package");
+            var node = await _node.GetByUserId(currentUser.Id);
+            var parentNode = await _node.GetByUserId(node.ParentId);
 
-            if (DontHaveEnoughMony(financialDTO, currentUser))
-            {
-                var pureAccountBalance = GetPureAccountBalance(currentUser);
+            node.TotalMoneyInvested += financialDTO.AmountInPackage;
+            parentNode.TotalMoneyInvestedBySubsets += financialDTO.AmountInPackage;
 
-                return BadRequest($"You dont have enough mony! your pure account balance : {pureAccountBalance}");
-            }
+            await _node.UpdateAsync(node);
+            await _node.UpdateAsync(parentNode);
 
+            await _save.SaveChangeAsync();
 
-            var userFinance = new UserFinancialPackage();
+            if (res)
+                return Ok();
+            else
+                return BadRequest("Something is wrong !");
 
-            //Dates are set in the create function in the repository
-            userFinance.AmountInPackage = financialDTO.AmountInPackage;
-            userFinance.FinancialPackage = financialPackageFromDb;
-            userFinance.User = currentUser;
-
-
-            try
-            {
-                await _userFinancial.CreateAsync(userFinance);
-
-                return Ok(financialDTO);
-            }
-            catch
-            {
-                throw;
-            }
         }
         #endregion
 

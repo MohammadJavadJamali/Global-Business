@@ -1,15 +1,20 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Quartz;
+﻿using Quartz;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 public class QuartzJobRunner : IJob
 {
+    #region Fields
     private readonly IServiceProvider _serviceProvider;
+    #endregion
+
+    #region Ctro
     public QuartzJobRunner(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }
+    #endregion
 
     public async Task Execute(IJobExecutionContext context)
     {

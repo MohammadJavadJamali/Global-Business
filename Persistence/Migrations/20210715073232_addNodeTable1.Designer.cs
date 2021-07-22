@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Persistence;
+using Application;
 
-namespace Persistence.Migrations
+namespace Application.Migrations
 {
     [DbContext(typeof(DataContext))]
     [Migration("20210715073232_addNodeTable1")]

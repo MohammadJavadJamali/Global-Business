@@ -1,23 +1,30 @@
-﻿using Domain.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
+﻿using System;
+using Domain.Model;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Collections.Generic;
 
-namespace Persistence.Repository
+namespace Application.Repository
 {
-    public class NodeService : INodeRepository
+    public class NodeService : INode
     {
-
+        #region Fields
         private readonly IRepository<Node> _repository;
+        #endregion
 
+        #region Ctro
         public NodeService(IRepository<Node> repository)
         {
             _repository = repository;
         }
+        #endregion
 
+        
+
+        public IEnumerable<Node> Where(Expression<Func<Node, bool>> expression)
+        {
+            return _repository.Where(expression);
+        }
 
         public virtual async Task CreateAsync(Node entity)
         {
@@ -28,9 +35,36 @@ namespace Persistence.Repository
 
         }
 
-        public async Task<IEnumerable<Node>> GetAll(Expression<Func<Node, bool>> expression = null)
+        public async Task Create(Node entity)
         {
-            return await _repository.GetAll(expression);
+            if (entity == null)
+                throw new ArgumentNullException();
+
+            await _repository.Create(entity);
+        }
+
+        public async Task UpdateAsync(Node entity)
+        {
+            if(entity is null)
+                throw new ArgumentNullException();
+
+            await _repository.UpdateAsync(entity);
+        }
+        public void Update(Node entity)
+        {
+            _repository.Update(entity);
+        }
+
+        public async Task<IEnumerable<Node>> GetAll(
+            Expression<Func<Node, bool>> expression = null,
+            Expression<Func<Node, object>> include = null)
+        {
+            return await _repository.GetAll(expression, include);
+        }
+
+        public async Task<Node> GetByUserId(string userId)
+        {
+            return await _repository.GetByIdAsync(userId);
         }
 
         public virtual async Task<Node> GetByIdAsync(int id)
@@ -48,8 +82,13 @@ namespace Persistence.Repository
             {
                 return null;
             }
-            return await _repository.FirstOrDefaultAsync(u => u.ParentId == id, null);
+            return await _repository.FirstOrDefaultAsync(u => u.ParentId == id, x => x.AppUser);
         }
+
+        public virtual async Task<Node> FirstOrDefaultAsync(
+            Expression<Func<Node, bool>> expression
+            , Expression<Func<Node, object>> include = null) =>
+            await _repository.FirstOrDefaultAsync(expression, include);
 
     }
 }
