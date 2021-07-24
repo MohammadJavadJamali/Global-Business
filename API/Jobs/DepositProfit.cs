@@ -78,6 +78,7 @@ namespace API.Jobs
                 {
                     if (!IsEndFinancialPackage(UF))
                     {
+                        #region comment
                         //decimal profitAmount = 0;
                         //decimal profitAmountPerDay = 0;
 
@@ -90,14 +91,12 @@ namespace API.Jobs
                         //int FinancialPackageDay = UF.DayCount;
 
                         //profitAmountPerDay += profitAmount / FinancialPackageDay;
+                        #endregion
 
                         var profitAmountPerDay = UF.ProfitAmountPerDay;
 
                         TransactionHelper.CreateTransaction(_user, user, profitAmountPerDay, _transaction);
                         await ProfitHelper.CreateProfit(user, _profit, profitAmountPerDay);
-
-                        _logger.LogInformation($"profit amount per day : {profitAmountPerDay}");
-
                     }
                     else
                     {
@@ -108,6 +107,7 @@ namespace API.Jobs
                         break;
                 }
             }
+            _logger.LogInformation($"deposit profit for {users.Count()} users");
 
             await _save.SaveChangeAsync();
 
@@ -124,33 +124,12 @@ namespace API.Jobs
 
 
         /// <summary>
-        /// Gives financial packages for each user
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="UF"></param>
-        /// <returns></returns>
-        private async Task<FinancialPackage> GetFinancialPackage(UserFinancialPackage uf) =>
-            await _financialPackage
-                .FirstOrDefaultAsync(x => x.Id == uf.FinancialPackageId, y => y.UserFinancialPackages);
-
-
-
-        /// <summary>
         /// Gives all users that have financial package
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
         private async Task<IEnumerable<AppUser>> GetAllUsers() =>
             await _user.GetAll(x => x.UserFinancialPackages.Count() > 0, y => y.UserFinancialPackages);
-
-
-        ///// <summary>
-        ///// Calculates the number of days in a financial package
-        ///// </summary>
-        ///// <param name="UF"></param>
-        ///// <returns></returns>
-        //private double GetFinancialPackageDay(UserFinancialPackage UF) =>
-        //    (UF.EndFinancialPackageDate - UF.ChoicePackageDate).TotalDays;
 
         #endregion
     }

@@ -244,10 +244,10 @@ namespace API.Controllers
         #endregion
 
 
-        [HttpPost("MainMethod")]
-        public async Task MainMethod()
+        [HttpPost("{num}")]
+        public async Task MainMethod(int num)
         {
-            var count = 14;
+            var count = num;
 
             var watch = new Stopwatch();
             watch.Start();

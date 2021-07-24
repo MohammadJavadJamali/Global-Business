@@ -38,49 +38,51 @@ namespace Application.Helpers
             userFinance.FinancialPackage = financialPackageFromDb;
             userFinance.AmountInPackage = userFinancialDTO.AmountInPackage;
 
+            userFinance.ChoicePackageDate = DateTime.Now;
+            userFinance.EndFinancialPackageDate = DateTime.Now.AddMonths(userFinance.FinancialPackage.Term);
+            userFinance.DayCount = (userFinance.EndFinancialPackageDate - userFinance.ChoicePackageDate).Days;
+
+            var financialPackage = await GetFinancialPackage(financialPackageFromDb, _financialPackage);
+
+            if (financialPackage is null)
+                return false;
+
+            var profitAmount = userFinance.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
+
+            userFinance.ProfitAmountPerDay = profitAmount / userFinance.DayCount;
+
+            #region comment
+            //decimal profitAmountPerDay = 0;
+
+            //foreach (var UF in user.UserFinancialPackages)
+            //{
+            //    decimal profitAmount = 0;
+
+            //    var financialPackage = await GetFinancialPackage(userFinance, _financialPackage);
+
+            //    profitAmount += UF.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
+
+            //    int FinancialPackageDay = UF.DayCount;
+
+            //    profitAmountPerDay += profitAmount / FinancialPackageDay;
+            //}
+
+            //userFinance.ProfitAmountPerDay += profitAmountPerDay;
+            #endregion
+
             try
             {
-                await _userFinancial.CreateAsync(userFinance);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
-
-            decimal profitAmountPerDay = 0;
-
-            foreach (var UF in user.UserFinancialPackages)
-            {
-                decimal profitAmount = 0;
-
-                var financialPackage = await GetFinancialPackage(userFinance, _financialPackage);
-
-                profitAmount += UF.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
-
-                int FinancialPackageDay = UF.DayCount;
-
-                profitAmountPerDay += profitAmount / FinancialPackageDay;
-            }
-
-            userFinance.ProfitAmountPerDay += profitAmountPerDay;
-
-            try
-            {
-
-                await _userFinancial.UpdateAsync(userFinance);
+                await _userFinancial.Create(userFinance);
                 return true;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw;
             }
 
         }
 
-
-
+        #region helper
 
         /// <summary>
         /// Gives financial packages for each user
@@ -89,11 +91,9 @@ namespace Application.Helpers
         /// <param name="UF"></param>
         /// <returns></returns>
         private static async Task<FinancialPackage> GetFinancialPackage(
-              UserFinancialPackage uf
+              FinancialPackage fp
             , IFinancialPackage _financialPackage) =>
-
-                await _financialPackage
-                    .FirstOrDefaultAsync(x => x.Id == uf.FinancialPackageId, y => y.UserFinancialPackages);
+            await _financialPackage.FirstOrDefaultAsync(x => x.Id == fp.Id);
 
 
         private static bool DontHaveEnoughMony(
@@ -111,6 +111,7 @@ namespace Application.Helpers
             return user.AccountBalance < sumAmountInPackages + financialDTO.AmountInPackage ? true : false;
         }
 
+
         private static decimal SumAmountInPackages(AppUser user, IUserFinancial _userFinancial)
         {
             decimal sumAmountInPackages = 0;
@@ -124,6 +125,7 @@ namespace Application.Helpers
             }
             return sumAmountInPackages;
         }
+        #endregion
 
     }
 }

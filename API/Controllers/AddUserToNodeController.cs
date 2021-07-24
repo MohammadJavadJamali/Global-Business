@@ -82,20 +82,20 @@ namespace API.Controllers
 
             if (parentUser.Node.LeftUserId is null)
             {
-
                 var res = await CreateNode(isLeft: true, parentUser, curentUser, createNodeDto);
 
                 if (res)
                     return Ok();
-                return BadRequest("Something is wrong !");
 
+                return BadRequest("Something is wrong !");
             }
-            else if (parentUser.Node.RightUserId == null)
+            else if (parentUser.Node.RightUserId is null)
             {
                 var res = await CreateNode(isLeft: false, parentUser, curentUser, createNodeDto);
 
                 if (res)
                     return Ok();
+
                 return BadRequest("Something is wrong !");
             }
             else

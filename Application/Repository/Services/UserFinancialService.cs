@@ -45,9 +45,11 @@ namespace Application.Repository
             if (entity == null)
                 throw new ArgumentNullException();
 
-            entity.ChoicePackageDate = DateTime.Now;
-            entity.EndFinancialPackageDate = DateTime.Now.AddMonths(entity.FinancialPackage.Term);
-            entity.DayCount = (entity.EndFinancialPackageDate - entity.ChoicePackageDate).Days;
+            #region comment
+            //entity.ChoicePackageDate = DateTime.Now;
+            //entity.EndFinancialPackageDate = DateTime.Now.AddMonths(entity.FinancialPackage.Term);
+            //entity.DayCount = (entity.EndFinancialPackageDate - entity.ChoicePackageDate).Days;
+            #endregion 
 
             await _repository.Create(entity);
 
@@ -60,6 +62,7 @@ namespace Application.Repository
 
             _repository.Update(entity);
         }
+
         public virtual async Task UpdateAsync(UserFinancialPackage entity)
         {
             if (entity is null)
