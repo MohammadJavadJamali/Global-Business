@@ -31,7 +31,7 @@ namespace Application.Nodes
 
             public async Task<List<Node>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.Nodes.AsNoTracking().ToListAsync();
+                return await _context.Nodes.ToListAsync();
             }
         }
     }

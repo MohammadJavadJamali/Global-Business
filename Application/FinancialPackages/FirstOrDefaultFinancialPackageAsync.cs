@@ -33,7 +33,6 @@ namespace Application.FinancialPackages
             {
                 return await _context
                     .FinancialPackages
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(request.expression);
             }
         }

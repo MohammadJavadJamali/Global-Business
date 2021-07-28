@@ -33,9 +33,11 @@ namespace Application.Nodes
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                var entity = await _context.Nodes.FindAsync(request.Node.Id);
+                //var entity = await _context.Nodes.FindAsync(request.Node.Id);
 
-                _mapper.Map(request.Node, entity);
+                //_mapper.Map(request.Node, entity);
+
+                _context.Nodes.Update(request.Node);
 
                 await _context.SaveChangesAsync();
 

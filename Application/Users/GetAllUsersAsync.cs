@@ -32,7 +32,10 @@ namespace Application.Users
 
             public async Task<List<AppUser>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.Users.ToListAsync();
+                return await _context
+                    .Users
+                    .Include(u => u.UserFinancialPackages)
+                    .ToListAsync();
             }
         }
     }

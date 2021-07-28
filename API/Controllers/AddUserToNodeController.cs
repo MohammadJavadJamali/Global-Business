@@ -149,7 +149,6 @@ namespace API.Controllers
 
             await _userManager.AddToRoleAsync(curentUser, "node");
 
-
             var parentNode = parentUser.Node;
 
             parentNode.TotalMoneyInvestedBySubsets += createNodeDto.UserFinancialDTO.AmountInPackage;

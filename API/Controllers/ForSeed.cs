@@ -281,7 +281,9 @@ namespace API.Controllers
             UserToNodeDto userToNodeDto = new();
             for (int i = 0; i < count; i++)
             {
-                await SeedUserToNood(userToNodeDto);
+                var res = await SeedUserToNood(userToNodeDto);
+                if (res == BadRequest())
+                    _logger.LogInformation("not create");
             }
 
             watch.Stop();

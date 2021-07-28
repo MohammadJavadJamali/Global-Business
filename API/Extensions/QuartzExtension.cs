@@ -23,7 +23,7 @@ namespace API.Extensions
             services.AddScoped<DepositCommission>();
 
             //every night at 12:00 PM
-            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "50 53 18 * * ?"));
+            services.AddSingleton(new JobSchedule(jobType: typeof(DepositProfit), cronExpression: "10 38 14 * * ?"));
 
             //every month at 01 / 00 / 0000 12:00 PM
             services.AddSingleton(new JobSchedule(jobType: typeof(DepositCommission), cronExpression: "10 38 18 * * ?"));

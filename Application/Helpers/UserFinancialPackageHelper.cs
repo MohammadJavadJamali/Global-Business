@@ -20,7 +20,7 @@ namespace Application.Helpers
         /// <param name="userFinancialDTO"></param>
         /// <param name="_financialPackage"></param>
         /// <returns></returns>
-        public static async Task<bool> CreateUserFinancialPackage( 
+        public static async Task<bool> CreateUserFinancialPackage(
               AppUser user
             , UserFinancialDTO userFinancialDTO
             , IMediator mediator)
@@ -48,16 +48,9 @@ namespace Application.Helpers
 
             userFinance.ProfitAmountPerDay = profitAmount / userFinance.DayCount;
 
-            try
-            {
-                await mediator.Send(new CreateUserFinancialPackageAsync.Command(userFinance));
-                return true;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            await mediator.Send(new CreateUserFinancialPackageAsync.Command(userFinance));
 
+            return true;
         }
 
         #region helper

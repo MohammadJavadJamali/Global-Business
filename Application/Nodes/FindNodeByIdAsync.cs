@@ -32,7 +32,6 @@ namespace Application.Nodes
                 return await _context
                     .Nodes
                     .Include(n => n.AppUser)
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(n => n.Id == request.Id);
             }
         }

@@ -31,7 +31,7 @@ namespace Application.Nodes
 
             public async Task<List<UserFinancialPackage>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.UserFinancialPackages.AsNoTracking().ToListAsync();
+                return await _context.UserFinancialPackages.ToListAsync();
             }
         }
     }
