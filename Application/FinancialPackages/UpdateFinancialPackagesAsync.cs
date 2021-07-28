@@ -36,8 +36,6 @@ namespace Application.FinancialPackages
 
                 _mapper.Map(request.financialPackage, entity);
 
-                await _context.SaveChangesAsync();
-
                 return Unit.Value;
 
             }

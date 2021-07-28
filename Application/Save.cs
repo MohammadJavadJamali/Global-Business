@@ -1,22 +1,17 @@
-﻿#region using
-using Dapper;
-using MediatR;
-using System.Data;
-using Domain.Model;
+﻿using MediatR;
+using Persistance;
 using System.Threading;
 using System.Threading.Tasks;
-using Persistance;
-#endregion
 
-namespace Application.FinancialPackages
+namespace Application
 {
-    public class CreateFinancialPackageAsync
+    public class Save
     {
-        public record Command(FinancialPackage FinancialPackage) : IRequest;
+        public record Command() : IRequest;
 
         public class Handler : IRequestHandler<Command>
         {
-            #region Ctor
+            #region ctor
             private readonly DataContext _context;
             public Handler(DataContext context)
             {
@@ -26,7 +21,7 @@ namespace Application.FinancialPackages
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                await _context.AddAsync(request.FinancialPackage);
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

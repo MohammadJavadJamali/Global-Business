@@ -26,14 +26,12 @@ namespace Application.UserFinancialPackages
             }
             #endregion
 
-            public Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
 
-                _context.UserFinancialPackages.Add(request.UserFinancialPackage);
+                await _context.UserFinancialPackages.AddAsync(request.UserFinancialPackage);
 
-                _context.SaveChanges();
-
-                return Unit.Task;
+                return Unit.Value;
             }
         }
     }

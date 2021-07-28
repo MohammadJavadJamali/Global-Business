@@ -31,7 +31,7 @@ namespace Application.Nodes
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
                 //var entity = await _context.Nodes.FindAsync(request.Node.Id);
 
@@ -39,9 +39,7 @@ namespace Application.Nodes
 
                 _context.Nodes.Update(request.Node);
 
-                await _context.SaveChangesAsync();
-
-                return Unit.Value;
+                return Unit.Task;
             }
         }
     }

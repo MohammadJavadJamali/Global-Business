@@ -29,8 +29,6 @@ namespace Application.Profits
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
                 await _context.Profits.AddAsync(request.Profits);
-                
-                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

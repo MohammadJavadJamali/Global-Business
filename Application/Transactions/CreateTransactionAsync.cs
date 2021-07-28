@@ -30,8 +30,6 @@ namespace Application.Transactions
             {
                 await _context.Transactions.AddAsync(request.Transaction);
 
-                await _context.SaveChangesAsync();
-
                 return Unit.Value;
             }
         }

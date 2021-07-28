@@ -29,15 +29,11 @@ namespace Application.Users
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                var user = await _context.Users.FindAsync(request.User.Id);
+                _context.Users.Update(request.User);
 
-                _mapper.Map(request.User, user);
-
-                await _context.SaveChangesAsync();
-
-                return Unit.Value;
+                return Unit.Task;
             }
         }
     }

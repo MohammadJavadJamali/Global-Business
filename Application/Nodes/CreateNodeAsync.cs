@@ -30,8 +30,6 @@ namespace Application.Nodes
                     .Nodes
                     .AddAsync(request.Node);
 
-                await _context.SaveChangesAsync();
-
                 return Unit.Value;
             }
         }

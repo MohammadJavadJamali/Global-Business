@@ -29,8 +29,6 @@ namespace Application.FinancialPackages
 
                 _context.FinancialPackages.Remove(entity);
 
-                await _context.SaveChangesAsync();
-
                 return Unit.Value;
             }
         }

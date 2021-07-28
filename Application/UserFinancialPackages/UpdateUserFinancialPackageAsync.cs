@@ -31,20 +31,11 @@ namespace Application.UserFinancialPackages
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
+                _context.UserFinancialPackages.Update(request.UserFinancialPackages);
 
-                var userFinancialPackage = await _context
-                    .UserFinancialPackages
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.UserId == request.UserFinancialPackages.UserId 
-                                          && x.FinancialPackageId == request.UserFinancialPackages.FinancialPackageId);
-
-                _mapper.Map(request.UserFinancialPackages, userFinancialPackage);
-
-                await _context.SaveChangesAsync();
-
-                return Unit.Value;
+                return Unit.Task;
             }
         }
     }

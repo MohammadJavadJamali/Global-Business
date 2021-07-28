@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Application;
 #endregion
 
 namespace API.Controllers
@@ -144,6 +145,8 @@ namespace API.Controllers
             if (parentUser.Node.LeftUserId == parentUser.Node.RightUserId)
                 return false;
 
+            await _mediator.Send(new Save.Command());
+
             //Update Parent Node 
             await _mediator.Send(new UpdateNodeAsync.Command(parentUser.Node));
 
@@ -179,8 +182,10 @@ namespace API.Controllers
                 }
                 else
                     continue;
-
+               
             } while (parentNode.ParentId is not null);
+
+            await _mediator.Send(new Save.Command());
 
             return true;
         }
