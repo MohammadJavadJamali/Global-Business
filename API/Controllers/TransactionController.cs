@@ -1,13 +1,16 @@
-﻿using System;
+﻿#region using
+using System;
+using MediatR;
 using Domain.DTO;
 using Domain.Model;
+using Application.Users;
 using Application.Helpers;
-using Application.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+#endregion 
 
 namespace API.Controllers
 {
@@ -17,23 +20,15 @@ namespace API.Controllers
     public class TransactionController : ControllerBase
     {
         #region Fields
-        private readonly ISave _save;
-        private readonly IUser _user;
-        private readonly ITransaction _transaction;
         private readonly UserManager<AppUser> _userManager;
-
+        private readonly IMediator _mediator;
         #endregion
 
         #region Ctor
-        public TransactionController(
-              IUser user
-            , ITransaction transaction
-            , UserManager<AppUser> userManager, ISave save)
+        public TransactionController(UserManager<AppUser> userManager, IMediator mediator)
         {
-            _user = user;
-            _transaction = transaction;
             _userManager = userManager;
-            _save = save;
+            _mediator = mediator;
         }
 
         #endregion
@@ -51,23 +46,20 @@ namespace API.Controllers
             {
                 var currentUser = await _userManager.FindByEmailAsync(User.FindFirstValue(ClaimTypes.Email));
 
-                var targetUser = await _user
-                    .FirstOrDefaultAsync(u => u.Email == transactionDTo.EmailTargetAccount, null);
+                //var targetUser = await _user
+                //    .FirstOrDefaultAsync(u => u.Email == transactionDTo.EmailTargetAccount, null);
+                var targetUser = await _mediator
+                    .Send(new FindUserByIntroductionCodeAsync.Query(transactionDTo.EmailTargetAccount));
 
                 if (currentUser.NormalizedEmail == targetUser.Email.ToUpper())
                 {
-
-                    TransactionHelper.CreateTransaction(_user, currentUser, transactionDTo.Amount, _transaction);
-                    await _save.SaveChangeAsync();
+                    await TransactionHelper.CreateTransaction(currentUser, transactionDTo.Amount, _mediator);
                 }
                 else
                 {
+                    await TransactionHelper.CreateTransaction(currentUser, -1 * transactionDTo.Amount, _mediator);
 
-                    TransactionHelper.CreateTransaction(_user, currentUser, -1 * transactionDTo.Amount, _transaction);
-                 
-                    TransactionHelper.CreateTransaction(_user, targetUser, transactionDTo.Amount, _transaction);
-                    
-                    await _save.SaveChangeAsync();
+                    await TransactionHelper.CreateTransaction(targetUser, transactionDTo.Amount, _mediator);
                 }
 
                 return Ok();

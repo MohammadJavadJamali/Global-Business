@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistance;
 
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210725142804_nodetree")]
+    partial class nodetree
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,9 +137,6 @@ namespace Persistence.Migrations
 
                     b.Property<string>("IntroductionCode")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsCalculate")
-                        .HasColumnType("bit");
 
                     b.Property<string>("LeftUserId")
                         .HasColumnType("nvarchar(max)");
@@ -292,22 +291,22 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e47f3403-c6d3-4c75-9500-c1f993a4b59c",
-                            ConcurrencyStamp = "6a8b30c9-5d5c-4709-bdb7-fccd648ca16d",
+                            Id = "594c37a0-5016-4fc3-9c5d-0ca357f7d666",
+                            ConcurrencyStamp = "57b304f6-0bfa-408f-8465-c845c5bd6eaa",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "14d05215-4db6-451e-bbbb-7efa51d94333",
-                            ConcurrencyStamp = "b8cc2162-1116-433c-bcf4-3546cc67236d",
+                            Id = "9c904fd6-1493-4040-96c9-f0e474ea2815",
+                            ConcurrencyStamp = "9481fc6f-0cd5-4f6a-a3c4-3f41126dad39",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         },
                         new
                         {
-                            Id = "d136264b-cd20-4f09-96c0-17d37ef57883",
-                            ConcurrencyStamp = "22817626-06fb-496c-8d7b-01304ca02469",
+                            Id = "517a49eb-091b-4a5b-99f9-5bed227b6381",
+                            ConcurrencyStamp = "003bae17-4256-4e07-be20-22898920ec03",
                             Name = "Node",
                             NormalizedName = "NODE"
                         });

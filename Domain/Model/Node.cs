@@ -24,9 +24,9 @@ namespace Domain.Model
         [Column(TypeName = "decimal(18,4)")]
         public decimal MinimumSubBrachInvested { get; set; }
 
+        public string IntroductionCode { get; set; }
 
-        public string IntroductionCode { get; set; } 
-
+        public bool IsCalculate { get; set; }
 
         public string UserId { get; set; }
         public AppUser AppUser { get; set; }

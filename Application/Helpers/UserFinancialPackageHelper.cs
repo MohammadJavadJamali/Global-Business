@@ -1,8 +1,12 @@
 ﻿using System;
+using MediatR;
 using Domain.Model;
-using Application.Repository;
 using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
+using Application.FinancialPackages;
+using Application.UserFinancialPackages;
+using System.Linq;
+using Application.Nodes;
 
 namespace Application.Helpers
 {
@@ -16,63 +20,46 @@ namespace Application.Helpers
         /// <param name="userFinancialDTO"></param>
         /// <param name="_financialPackage"></param>
         /// <returns></returns>
-        public static async Task<bool> CreateUserFinancialPackage(
+        public static async Task<bool> CreateUserFinancialPackage( 
               AppUser user
-            , IUserFinancial _userFinancial
             , UserFinancialDTO userFinancialDTO
-            , IFinancialPackage _financialPackage)
+            , IMediator mediator)
         {
-            var financialPackageFromDb = await _financialPackage.GetByIdAsync(userFinancialDTO.FinancialPackageId);
+            var financialPackageFromDb = await mediator.Send(new FindFinancialPackageByIdAsync.Query(userFinancialDTO.FinancialPackageId));
 
             if (financialPackageFromDb is null)
                 return false;
 
 
-            if (DontHaveEnoughMony(user, userFinancialDTO, _userFinancial))
+            if (await DontHaveEnoughMony(user, userFinancialDTO, mediator))
                 return false;
 
             var userFinance = new UserFinancialPackage();
 
             //Dates are set in the create function in the repository
             userFinance.User = user;
+            userFinance.UserId = user.Id;
             userFinance.FinancialPackage = financialPackageFromDb;
             userFinance.AmountInPackage = userFinancialDTO.AmountInPackage;
-
             userFinance.ChoicePackageDate = DateTime.Now;
             userFinance.EndFinancialPackageDate = DateTime.Now.AddMonths(userFinance.FinancialPackage.Term);
             userFinance.DayCount = (userFinance.EndFinancialPackageDate - userFinance.ChoicePackageDate).Days;
 
-            var financialPackage = await GetFinancialPackage(financialPackageFromDb, _financialPackage);
+            var financialPackage = await GetFinancialPackage(financialPackageFromDb, mediator);
 
             if (financialPackage is null)
                 return false;
+
+            userFinance.FinancialPackage = financialPackage;
+            userFinance.FinancialPackageId = financialPackage.Id;
 
             var profitAmount = userFinance.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
 
             userFinance.ProfitAmountPerDay = profitAmount / userFinance.DayCount;
 
-            #region comment
-            //decimal profitAmountPerDay = 0;
-
-            //foreach (var UF in user.UserFinancialPackages)
-            //{
-            //    decimal profitAmount = 0;
-
-            //    var financialPackage = await GetFinancialPackage(userFinance, _financialPackage);
-
-            //    profitAmount += UF.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
-
-            //    int FinancialPackageDay = UF.DayCount;
-
-            //    profitAmountPerDay += profitAmount / FinancialPackageDay;
-            //}
-
-            //userFinance.ProfitAmountPerDay += profitAmountPerDay;
-            #endregion
-
             try
             {
-                await _userFinancial.Create(userFinance);
+                await mediator.Send(new CreateUserFinancialPackageAsync.Command(userFinance));
                 return true;
             }
             catch (Exception)
@@ -92,16 +79,16 @@ namespace Application.Helpers
         /// <returns></returns>
         private static async Task<FinancialPackage> GetFinancialPackage(
               FinancialPackage fp
-            , IFinancialPackage _financialPackage) =>
-            await _financialPackage.FirstOrDefaultAsync(x => x.Id == fp.Id);
+            , IMediator mediator) =>
+            await mediator.Send(new FirstOrDefaultFinancialPackageAsync.Query(x => x.Id == fp.Id));
 
 
-        private static bool DontHaveEnoughMony(
+        private static async Task<bool> DontHaveEnoughMony(
               AppUser user
             , UserFinancialDTO financialDTO
-            , IUserFinancial _userFinancial)
+            , IMediator mediator)
         {
-            decimal sumAmountInPackages = SumAmountInPackages(user, _userFinancial);
+            decimal sumAmountInPackages = await SumAmountInPackages(user, mediator);
 
             if (sumAmountInPackages == 0)
             {
@@ -112,12 +99,16 @@ namespace Application.Helpers
         }
 
 
-        private static decimal SumAmountInPackages(AppUser user, IUserFinancial _userFinancial)
+        private static async Task<decimal> SumAmountInPackages(AppUser user, IMediator mediator)
         {
             decimal sumAmountInPackages = 0;
 
-            var userFinancials = _userFinancial
-                .Where(x => x.UserId == user.Id);
+            //var userFinancials = await mediator.Send(new WhereUserFinancialPackage.Query(x => x.UserId == user.Id));
+            var userFinancials1 = await mediator.Send(new GetAllUserFinancialPackagesAsync.Query());
+            var userFinancials = userFinancials1.Where(x => x.UserId == user.Id);
+
+            //var userFinancials = _userFinancial
+            //     .Where(x => x.UserId == user.Id);
 
             foreach (var finance in userFinancials)
             {

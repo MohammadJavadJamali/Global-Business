@@ -1,9 +1,15 @@
+using MediatR;
 using API.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Persistance;
+using Microsoft.EntityFrameworkCore;
+using Application.Users;
+using System.Data;
+using Microsoft.Data.SqlClient;
 
 namespace API
 {
@@ -23,17 +29,24 @@ namespace API
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<DataContext>(opt =>
+            {
+                opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            string dbConnectionString = Configuration.GetConnectionString("DefaultConnection");
+
+            services.AddTransient<IDbConnection>((sp) => new SqlConnection(dbConnectionString));
+
             services.AddControllers();
 
             services.AddSwaggerGen();
 
             services.AddQuatzServices();
             
-            services.AddRepositoryServices();
-            
             services.AddIdentityServices(Configuration);
-            
-            services.AddDataContextServices(Configuration);
+
+            services.AddMediatR(typeof(UpdateUserAsync).Assembly);
 
         }
 

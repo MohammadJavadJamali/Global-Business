@@ -1,13 +1,15 @@
-﻿using System;
-using AutoMapper;
+﻿#region using
+using System;
+using MediatR;
 using Domain.Model;
 using System.Text.Json;
-using Application.Repository;
 using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Application.FinancialPackages;
 using Microsoft.AspNetCore.Authorization;
+#endregion
 
 namespace API.Controllers
 {
@@ -16,45 +18,42 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class FinancialPackageController : ControllerBase
     {
-        #region Fields
-        private readonly IMapper _mapper;
-        private readonly IFinancialPackage _financialPackage;
-        #endregion
+        #region ctor
+        private readonly IMediator _mediator;
 
-        #region Ctor
-        public FinancialPackageController(
-              IMapper mapper
-            , IFinancialPackage financialPackage)
+        public FinancialPackageController(IMediator mediator)
         {
-            _mapper = mapper;
-            _financialPackage = financialPackage;
+            _mediator = mediator;
         }
         #endregion
 
         [HttpGet]
         public ActionResult<IEnumerable<FinancialPackage>> GetFinancials()
         {
-            var financialPackages = _financialPackage.GetAll();
+            var financialPackages = _mediator.Send(new GetAllFinancialPackagesAsync.Query());
             var json = JsonSerializer.Serialize(financialPackages);
             return Ok(json);
         }
 
         [HttpGet("{id}")]
         public async Task<FinancialPackage> GetFinancialById(int id) =>
-            await _financialPackage.GetByIdAsync(id);
+            await _mediator.Send(new FindFinancialPackageByIdAsync.Query(id));
+
 
 
         [HttpPost]
-        public async Task<ActionResult> CreateFinancialPackage(FinancialDTO createDTO)
+        public async Task<ActionResult> CreateFinancialPackage(FinancialDTO financialDTO)
         {
             if (!ModelState.IsValid)
                 return BadRequest("All filds are requird!");
 
-            var financial = _mapper.Map<FinancialPackage>(createDTO);
+            FinancialPackage financialPackage = new();
+            financialPackage.ProfitPercent = financialDTO.ProfitPercent;
+            financialPackage.Term = financialDTO.Term;
 
             try
             {
-                await _financialPackage.CreateAsync(financial);
+                await _mediator.Send(new CreateFinancialPackageAsync.Command(financialPackage));
                 return Ok();
             }
             catch (Exception)
@@ -67,16 +66,13 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteFinancialPackage(int id)
         {
-            if (id > 0)
+            if (id < 0)
                 return BadRequest("id is not valid");
 
             try
             {
-                var res = await _financialPackage.DeleteAsync(id);
-                if (res)
-                    return Ok();
-                else
-                    return BadRequest("id is not valid");
+                var res = await _mediator.Send(new RemoveFinancialPackages.Command(id));
+                return Ok();
             }
             catch (Exception)
             {
@@ -86,19 +82,19 @@ namespace API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateFinancial(FinancialPackage financialPackage, int id)
+        public async Task<ActionResult> UpdateFinancial(FinancialDTO financialDTO, int id)
         {
             if (!ModelState.IsValid)
                 return BadRequest("All fields are required!");
 
-            var financialPackageFromDb = await _financialPackage.GetByIdAsync(id);
-            
-            financialPackage.Id = id;
-            _mapper.Map(financialPackage, financialPackageFromDb);
+            var financialPackageFromDb = await _mediator.Send(new FindFinancialPackageByIdAsync.Query(id));
+
+            financialPackageFromDb.ProfitPercent = financialDTO.ProfitPercent;
+            financialPackageFromDb.Term = financialDTO.Term;
 
             try
             {
-                await _financialPackage.UpdateAsync(financialPackageFromDb);
+                await _mediator.Send(new UpdateFinancialPackagesAsync.Command(financialPackageFromDb));
                 return Ok();
             }
             catch (Exception)

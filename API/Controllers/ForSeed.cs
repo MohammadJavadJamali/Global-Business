@@ -1,17 +1,20 @@
-﻿using Domain.DTO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Domain.Model;
-using Application.Helpers;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Application.Repository;
-using Domain.DTO.Node;
-using Domain.DTO.FinancialDTO;
-using System.Collections.Generic;
+﻿#region 
+using MediatR;
+using Domain.DTO;
 using Application;
+using Domain.Model;
+using Domain.DTO.Node;
+using Application.Nodes;
+using Application.Users;
 using System.Diagnostics;
+using Application.Helpers;
+using System.Threading.Tasks;
+using Domain.DTO.FinancialDTO;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+#endregion
 
 namespace API.Controllers
 {
@@ -21,32 +24,21 @@ namespace API.Controllers
     {
 
         #region Fields
-        private readonly ISave _save;
-        private readonly IUser _user;
-        private readonly INode _node;
         private readonly ILogger<ForSeed> _logger;
-        private readonly IUserFinancial _userFinancial;
+        private readonly IMediator _mediator;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IFinancialPackage _financialPackage;
-
         #endregion
 
         #region Ctor
 
         public ForSeed(
-              IUser user
-            , INode node
-            , IUserFinancial userFinancial
-            , UserManager<AppUser> userManager
-            , IFinancialPackage financialPackage, ILogger<ForSeed> logger, ISave save)
+              UserManager<AppUser> userManager
+            , ILogger<ForSeed> logger
+            , IMediator mediator)
         {
-            _user = user;
-            _node = node;
             _userManager = userManager;
-            _userFinancial = userFinancial;
-            _financialPackage = financialPackage;
             _logger = logger;
-            _save = save;
+            _mediator = mediator;
         }
 
         #endregion
@@ -80,20 +72,18 @@ namespace API.Controllers
 
             #endregion
 
+            var parentNode = await _mediator
+                .Send(new FirstOrDefaultNodeAsync.Query(x => x.LeftUserId == null || x.RightUserId == null));
 
-            var parentNode = await _node.FirstOrDefaultAsync(x => x.LeftUserId == null || x.RightUserId == null, c => c.AppUser);
 
             userToNodeDto.IntroductionCode = parentNode.IntroductionCode;
-
-            //var parentUser = await _user
-            //    .FirstOrDefaultAsync(u => u.IntroductionCode == userToNodeDto.IntroductionCode, b => b.Node);
 
             if (parentNode is null)
                 return BadRequest();
 
             UserFinancialDTO userFinancialDTO = new();
             userFinancialDTO.AmountInPackage = 3000000;
-            userFinancialDTO.FinancialPackageId = 1;
+            userFinancialDTO.FinancialPackageId = 2;
 
             CreateNodeDto createNodeDto = new();
             createNodeDto.IntroductionCode = user.IntroductionCode;
@@ -101,14 +91,11 @@ namespace API.Controllers
 
             if (parentNode.LeftUserId == null)
             {
-
                 var res = await CreateNode(isLeft: true, parentNode.AppUser, user, createNodeDto);
 
                 if (res)
                     return Ok();
                 return BadRequest();
-
-
             }
             else if (parentNode.RightUserId == null)
             {
@@ -133,11 +120,13 @@ namespace API.Controllers
             new Node()
             {
                 AppUser = user,
+                UserId = user.Id,
                 LeftUserId = null,
                 RightUserId = null,
+                IsCalculate = false,
                 ParentId = parent.Id,
-                TotalMoneyInvested = createNodeDto.UserFinancialDTO.AmountInPackage,
-                IntroductionCode = user.IntroductionCode
+                IntroductionCode = user.IntroductionCode,
+                TotalMoneyInvested = createNodeDto.UserFinancialDTO.AmountInPackage
             };
 
 
@@ -154,22 +143,24 @@ namespace API.Controllers
             var res = await UserFinancialPackageHelper
                 .CreateUserFinancialPackage(
                       curentUser
-                    , _userFinancial
                     , createNodeDto.UserFinancialDTO
-                    , _financialPackage);
-
+                    , _mediator);
 
             if (!res)
                 return false;
 
-            await _node.Create(curentNode);
+            await _mediator.Send(new CreateNodeAsync.Command(curentNode));
 
             if (isLeft)
                 parentUser.Node.LeftUserId = curentUser.Id;
             else
                 parentUser.Node.RightUserId = curentUser.Id;
 
-            _user.Update(parentUser);
+            if (parentUser.Node.LeftUserId == parentUser.Node.RightUserId)
+                return false;
+
+            //Update Parent Node 
+            await _mediator.Send(new UpdateNodeAsync.Command(parentUser.Node));
 
             await _userManager.AddToRoleAsync(curentUser, "node");
 
@@ -181,35 +172,33 @@ namespace API.Controllers
 
             parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
 
-            _node.Update(parentNode);
-            await _save.SaveChangeAsync();
+            await _mediator.Send(new UpdateNodeAsync.Command(parentNode));
 
             do
             {
-                //this is the logined user (curent user) parent`s parent !
-                parentNode = await _node
-                    .FirstOrDefaultAsync(x => x.AppUser.Id == parentNode.ParentId, y => y.AppUser);
-
-                //If the current user is an Admin child(in one step); This condition applies
-                if (parentNode is null)
+                if (!curentNode.IsCalculate)
                 {
-                    await _save.SaveChangeAsync();
+                    //this is the logined user (curent user) parent`s parent !
+                    parentNode = await _mediator.Send(new FindNodeByUserIdAsync.Query(parentNode.ParentId));
 
-                    return true;
+                    //If the current user is an Admin child(in one step); This condition applies
+                    if (parentNode is null)
+                        return true;
+
+                    parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
+
+                    parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
+
+                    parentNode.AppUser.CommissionPaid = false;
+
+                    //Update Parent Node
+                    await _mediator.Send(new UpdateNodeAsync.Command(parentNode));
+                    await _mediator.Send(new UpdateUserAsync.Command(parentNode.AppUser));
                 }
-
-                parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
-
-                parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
-
-                parentNode.AppUser.CommissionPaid = false;
-
-                _node.Update(parentNode);
-
+                else
+                    continue;
 
             } while (parentNode.ParentId is not null);
-
-            await _save.SaveChangeAsync();
 
             return true;
         }
@@ -218,8 +207,8 @@ namespace API.Controllers
         private async Task<decimal> MinimumSubBranch(Node node)
         {
 
-            var leftNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.LeftUserId, y => y.AppUser);
-            var rightNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.RightUserId, y => y.AppUser);
+            var leftNode = await _mediator.Send(new FindNodeByUserIdAsync.Query(node.LeftUserId));
+            var rightNode = await _mediator.Send(new FindNodeByUserIdAsync.Query(node.RightUserId));
 
             if (rightNode is null)
                 return 0;
@@ -230,15 +219,52 @@ namespace API.Controllers
                     leftNode.TotalMoneyInvested > rightNode.TotalMoneyInvested ?
                     rightNode.TotalMoneyInvested : leftNode.TotalMoneyInvested;
             }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null && 
+                !leftNode.IsCalculate && !rightNode.IsCalculate)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested >
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested ?
+
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested
+                    : leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested;
+            }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null &&
+                leftNode.IsCalculate && !rightNode.IsCalculate)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets  >
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested ?
+
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested
+                    : leftNode.TotalMoneyInvestedBySubsets;
+            }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null &&
+                !leftNode.IsCalculate && rightNode.IsCalculate)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested >
+                    rightNode.TotalMoneyInvestedBySubsets  ?
+
+                    rightNode.TotalMoneyInvestedBySubsets 
+                    : leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested;
+            }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null &&
+                leftNode.IsCalculate && rightNode.IsCalculate)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets  > rightNode.TotalMoneyInvestedBySubsets ?
+                    rightNode.TotalMoneyInvestedBySubsets : leftNode.TotalMoneyInvestedBySubsets ;
+            }
             else if (leftNode.LeftUserId is not null || rightNode.LeftUserId is not null)
             {
                 return
                     leftNode.TotalMoneyInvestedBySubsets > rightNode.TotalMoneyInvestedBySubsets ?
                     rightNode.TotalMoneyInvestedBySubsets : leftNode.TotalMoneyInvestedBySubsets;
             }
+
             else
                 return 0;
-
         }
 
         #endregion
@@ -256,7 +282,6 @@ namespace API.Controllers
             for (int i = 0; i < count; i++)
             {
                 await SeedUserToNood(userToNodeDto);
-                //await _save.SaveChangeAsync();
             }
 
             watch.Stop();

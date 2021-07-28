@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Application.ModelBuilderConfigurations;
 
-namespace Application
+namespace Persistance
 {
     public class DataContext : IdentityDbContext<AppUser>
     {

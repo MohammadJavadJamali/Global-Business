@@ -1,45 +1,31 @@
-﻿using Quartz;
+﻿#region using
+using Quartz;
+using MediatR;
+using System.Linq;
 using Domain.Model;
+using Application.Nodes;
 using System.Diagnostics;
 using Application.Helpers;
 using System.Threading.Tasks;
-using Application.Repository;
 using Microsoft.Extensions.Logging;
+using Application.Users;
+#endregion
 
 namespace API.Jobs
 {
-
     public class DepositCommission : IJob
     {
 
-        #region FIelds
-        private readonly ISave _save;
-        private readonly IUser _user;
-        private readonly INode _node;
-        private readonly IProfit _profit;
-        private readonly ITransaction _transaction;
-        private readonly IUserFinancial _userFinancial;
+        #region Fields
         private readonly ILogger<DepositCommission> _logger;
-        private readonly IFinancialPackage _financialPackage;
+        private readonly IMediator _mediator;
         #endregion
 
         #region Ctor
-        public DepositCommission(
-              INode node
-            , IProfit profit
-            , ITransaction transaction
-            , IUserFinancial userFinancial
-            , ILogger<DepositCommission> logger
-            , IUser user, IFinancialPackage financialPackage, ISave save)
+        public DepositCommission(ILogger<DepositCommission> logger, IMediator mediator)
         {
-            _node = node;
-            _user = user;
             _logger = logger;
-            _profit = profit;
-            _transaction = transaction;
-            _userFinancial = userFinancial;
-            _financialPackage = financialPackage;
-            _save = save;
+            _mediator = mediator;
         }
         #endregion
 
@@ -50,28 +36,32 @@ namespace API.Jobs
             var watch = new Stopwatch();
             watch.Start();
 
-            var rootNode = await _node.FirstOrDefaultAsync(n => n.ParentId == null, x => x.AppUser);
+            var rootNode = await _mediator.Send(new FirstOrDefaultNodeAsync.Query(x => x.ParentId == null));
 
             var watch1 = new Stopwatch();
             watch1.Start();
 
             await recursive(rootNode);
-            //await _save.SaveChangeAsync();
 
             watch1.Stop();
             _logger.LogInformation($"time to traverse tree : {watch1.ElapsedMilliseconds} ms");
 
-            var nodes = await _node.GetAll(n => n.TotalMoneyInvestedBySubsets > 0);
+            //var nodes = await _node.GetAll(n => n.TotalMoneyInvestedBySubsets > 0);
+            var nodes = await _mediator.Send(new GetAllNodesAsync.Query());
+
+            var watch2 = new Stopwatch();
+            watch1.Start();
 
             foreach (var node in nodes)
             {
                 node.TotalMoneyInvestedBySubsets = 0;
                 node.MinimumSubBrachInvested = 0;
+                node.IsCalculate = true;
 
-                _node.Update(node);
+                await _mediator.Send(new UpdateNodeAsync.Command(node));
             }
-
-            await _save.SaveChangeAsync();
+            watch2.Stop();
+            _logger.LogInformation($"time to set zero : {watch2.ElapsedMilliseconds} ms");
 
             watch.Stop();
             _logger.LogInformation($"time to pay commission : {watch.ElapsedMilliseconds} ms");
@@ -90,27 +80,24 @@ namespace API.Jobs
         {
             if (node.LeftUserId is not null)
             {
-                leftNode = await _node.FirstOrDefaultAsync(u => u.AppUser.Id == node.LeftUserId, x => x.AppUser);
+                leftNode = await _mediator.Send(new FirstOrDefaultNodeAsync.Query(x => x.AppUser.Id == node.LeftUserId));
 
                 await recursive(leftNode);
             }
             if (node.RightUserId is not null && node.AppUser.CommissionPaid is false)
             {
-                rightNode = await _node
-                    .FirstOrDefaultAsync(u => u.AppUser.Id == node.RightUserId, x => x.AppUser);
-
                 var commission = node.MinimumSubBrachInvested * 10 / 100;
 
                 node.AppUser.CommissionPaid = true;
-                _user.Update(node.AppUser);
+                await _mediator.Send(new UpdateUserAsync.Command(node.AppUser));
 
                 if (commission is not 0)
                 {
-                    await ProfitHelper.CreateProfit(node.AppUser, _profit, commission);
-                    TransactionHelper.CreateTransaction(_user, node.AppUser, commission, _transaction);
+                    await ProfitHelper.CreateProfit(node.AppUser, commission, _mediator);
+                    await TransactionHelper.CreateTransaction(node.AppUser, commission, _mediator);
                 }
 
-                _node.Update(node);
+                rightNode = await _mediator.Send(new FirstOrDefaultNodeAsync.Query(x => x.AppUser.Id == node.RightUserId));
 
                 await recursive(rightNode);
             }

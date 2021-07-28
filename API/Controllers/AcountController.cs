@@ -1,20 +1,14 @@
 ﻿#region using
 using Domain.DTO;
-using System.Linq;
 using API.Services;
 using Domain.Model;
 using System.Text.Json;
 using Application.Helpers;
-using Application.Repository;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using System.Diagnostics;
-using System;
 #endregion
 
 namespace API.Controllers

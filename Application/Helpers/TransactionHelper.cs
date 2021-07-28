@@ -1,5 +1,8 @@
-﻿using Domain.Model;
-using Application.Repository;
+﻿using System;
+using MediatR;
+using Domain.Model;
+using Application.Users;
+using Application.Transactions;
 using System.Threading.Tasks;
 
 namespace Application.Helpers
@@ -15,25 +18,26 @@ namespace Application.Helpers
         /// <param name="transactionAmount"></param>
         /// <param name="_transaction"></param>
         /// <returns></returns>
-        public static void CreateTransaction(
-              IUser _user
-            , AppUser user
+        public static async Task CreateTransaction(
+              AppUser user
             , decimal transactionAmount
-            , ITransaction _transaction)
+            , IMediator mediator)
         {
             Transaction transaction = new();
-            //transaction date set in CreteAsync method
+
             transaction.User = user;
+            transaction.User_Id = user.Id;
             transaction.Amount = transactionAmount;
+            transaction.TransactionDate = DateTime.Now;
             transaction.EmailTargetAccount = user.Email;
             transaction.InitialBalance = user.AccountBalance;
             transaction.FinalBalance = user.AccountBalance + transactionAmount;
 
             user.AccountBalance += transactionAmount;
 
-            _transaction.Create(transaction);
+            await mediator.Send(new CreateTransactionAsync.Command(transaction));
+            await mediator.Send(new UpdateUserAsync.Command(user));
 
-            _user.Update(user);
         }
     }
 }

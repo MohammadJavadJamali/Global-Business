@@ -1,5 +1,6 @@
-﻿using Domain.Model;
-using Application.Repository;
+﻿using MediatR;
+using Domain.Model;
+using Application.Profits;
 using System.Threading.Tasks;
 
 namespace Application.Helpers
@@ -8,15 +9,17 @@ namespace Application.Helpers
     {
         public static async Task CreateProfit(
               AppUser user
-            , IProfit _profit
-            , decimal profitAmount)
+            , decimal profitAmount,
+              IMediator mediator)
         {
             Profit profit = new();
-            //date time set in Create method
-            profit.User = user;
-            profit.ProfitAmount = profitAmount;
 
-            await _profit.Create(profit);
+            profit.User = user;
+            profit.User_Id = user.Id;
+            profit.ProfitAmount = profitAmount;
+            profit.ProfitDepositDate = System.DateTime.Now;
+
+            await mediator.Send(new CreateProfitAsync.Command(profit));
         }
     }
 }

@@ -1,13 +1,15 @@
-﻿using Domain.Model;
+﻿using MediatR;
+using System.Linq;
+using Domain.Model;
+using Application.Nodes;
 using Application.Helpers;
-using Application.Repository;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
 {
@@ -18,27 +20,16 @@ namespace API.Controllers
     {
 
         #region Fields
-        private readonly ISave _save;
-        private readonly INode _node;
-        private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IFinancialPackage _financialPackage;
+        private readonly IMediator _mediator;
         #endregion
 
         #region ctor
-        public UserFinancialController(
-              INode node
-            , IUserFinancial userFinancial
-            , UserManager<AppUser> userManager
-            , IFinancialPackage financialPackage, ISave save)
+        public UserFinancialController(UserManager<AppUser> userManager, IMediator mediator)
         {
-            _node = node;
             _userManager = userManager;
-            _userFinancial = userFinancial;
-            _financialPackage = financialPackage;
-            _save = save;
+            _mediator = mediator;
         }
-
         #endregion
 
         #region Action Method
@@ -66,18 +57,23 @@ namespace API.Controllers
                 return BadRequest("Email in not exist!");
 
             var res = await UserFinancialPackageHelper
-                .CreateUserFinancialPackage(currentUser, _userFinancial, financialDTO, _financialPackage);
+                .CreateUserFinancialPackage(currentUser, financialDTO, _mediator);
 
-            var node = await _node.GetByUserId(currentUser.Id);
-            var parentNode = await _node.GetByUserId(node.ParentId);
+
+
+            //var node = await _node.GetByUserId(currentUser.Id);
+            //var parentNode = await _node.GetByUserId(node.ParentId);
+
+            var node = await _mediator.Send(new FindNodeByUserIdAsync.Query(currentUser.Id));
+            var parentNode = await _mediator.Send(new FindNodeByUserIdAsync.Query(node.ParentId));
 
             node.TotalMoneyInvested += financialDTO.AmountInPackage;
             parentNode.TotalMoneyInvestedBySubsets += financialDTO.AmountInPackage;
 
-            await _node.UpdateAsync(node);
-            await _node.UpdateAsync(parentNode);
-
-            await _save.SaveChangeAsync();
+            //await _node.UpdateAsync(node);
+            //await _node.UpdateAsync(parentNode);
+            await _mediator.Send(new UpdateNodeAsync.Command(node));
+            await _mediator.Send(new UpdateNodeAsync.Command(parentNode));
 
             if (res)
                 return Ok();
@@ -89,9 +85,9 @@ namespace API.Controllers
 
         #region Helper
 
-        private bool DontHaveEnoughMony(UserFinancialDTO financialDTO, AppUser user)
+        private async Task<bool> DontHaveEnoughMony(UserFinancialDTO financialDTO, AppUser user)
         {
-            decimal sumAmountInPackages = SumAmountInPackages(user);
+            decimal sumAmountInPackages = await SumAmountInPackages(user);
 
             if (sumAmountInPackages == 0)
             {
@@ -107,9 +103,9 @@ namespace API.Controllers
         /// <param name="financialDTO"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        private decimal GetPureAccountBalance(AppUser user)
+        private async Task<decimal> GetPureAccountBalance(AppUser user)
         {
-            decimal sumAmountInPackages = SumAmountInPackages(user);
+            decimal sumAmountInPackages = await SumAmountInPackages(user);
 
             return user.AccountBalance - sumAmountInPackages;
         }
@@ -119,12 +115,15 @@ namespace API.Controllers
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        private decimal SumAmountInPackages(AppUser user)
+        private async Task<decimal> SumAmountInPackages(AppUser user)
         {
             decimal sumAmountInPackages = 0;
 
-            var userFinancials = _userFinancial
-                .Where(x => x.UserId == user.Id);
+            //var userFinancials = _userFinancial
+            //    .Where(x => x.UserId == user.Id);
+
+            var userFinancials = await _mediator.Send(new GetAllUserFinancialPackagesAsync.Query());
+            userFinancials = userFinancials.Where(x => x.UserId == user.Id).ToList();
 
             foreach (var finance in userFinancials)
             {
