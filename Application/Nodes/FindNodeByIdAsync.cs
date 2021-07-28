@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Persistance;
 #endregion
 
 namespace Application.Nodes
@@ -18,25 +19,21 @@ namespace Application.Nodes
 
         public class Handler : IRequestHandler<Query, Node>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Node> Handle(Query request, CancellationToken cancellationToken)
             {
-                var sql = "SELECT * FROM Nodes WHERE Id = @Id";
-
-                _dbConnection.Open();
-
-                var node = await _dbConnection.QueryFirstOrDefaultAsync<Node>(sql, new { Id = request.Id });
-                
-                _dbConnection.Close();
-
-                return node;
+                return await _context
+                    .Nodes
+                    .Include(n => n.AppUser)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(n => n.Id == request.Id);
             }
         }
     }

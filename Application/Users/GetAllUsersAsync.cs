@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Collections;
+using Persistance;
 #endregion
 
 namespace Application.Users
@@ -22,47 +23,16 @@ namespace Application.Users
         public class Handler : IRequestHandler<Query, List<AppUser>>
         {
             #region Ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<List<AppUser>> Handle(Query request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = 
-                    "SELECT * FROM AspNetUsers AS A" +
-                    " INNER JOIN UserFinancialPackages AS B " +
-                    "ON A.Id = B.UserId";
-                #endregion
-
-                var orderDectionary = new Dictionary<string, AppUser>();
-
-                _dbConnection.Open();
-
-                var users = await _dbConnection.QueryAsync<AppUser, UserFinancialPackage, AppUser>(
-                    sql,
-                    (appuser, userFinancialPackage) =>
-                    {
-                        AppUser appuserEntry;
-                        if (!orderDectionary.TryGetValue(appuser.Id, out appuserEntry))
-                        {
-                            appuserEntry = appuser;
-                            appuserEntry.UserFinancialPackages = new List<UserFinancialPackage>();
-                            orderDectionary.Add(appuserEntry.Id, appuserEntry);
-                        }
-
-                        appuserEntry.UserFinancialPackages.Add(userFinancialPackage);
-                        return appuserEntry;
-                    },
-                    splitOn: "UserId");
-                
-                _dbConnection.Close();
-
-                return users.ToList();
-
+                return await _context.Users.ToListAsync();
             }
         }
     }

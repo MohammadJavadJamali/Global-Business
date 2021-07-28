@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using Persistance;
+using AutoMapper;
 #endregion
 
 namespace Application.Users
@@ -18,51 +20,22 @@ namespace Application.Users
         public class Handler : IRequestHandler<Command>
         {
             #region Ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            private readonly DataContext _context;
+            private readonly IMapper _mapper;
+            public Handler(DataContext context, IMapper mapper)
             {
-                _dbConnection = dbConnection;
+                _context = context;
+                _mapper = mapper;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = "UPDATE AspNetUsers SET " +
-                    "FirstName = @FirstName, LastName = @LastName, AccountBalance = CONVERT(decimal(18, 4), @AccountBalance), " +
-                    "IsDeleted = @IsDeleted, UserName = @UserName, Email = @Email, EmailConfirmed = @EmailConfirmed, " +
-                    "PhoneNumber = @PhoneNumber, PhoneNumberConfirmed = @PhoneNumberConfirmed, TwoFactorEnabled = @TwoFactorEnabled, " +
-                    "LockoutEnd = @LockoutEnd, LockoutEnabled = @LockoutEnabled, AccessFailedCount = @AccessFailedCount, " +
-                    "IntroductionCode = @IntroductionCode, CommissionPaid = @CommissionPaid WHERE Id = @Id";
-                #endregion
+                var user = await _context.Users.FindAsync(request.User.Id);
 
-                #region parameters
-                var parameters = new
-                {
-                    request.User.FirstName,
-                    request.User.LastName,
-                    request.User.AccountBalance,
-                    request.User.IsDeleted,
-                    request.User.UserName,
-                    request.User.Email,
-                    request.User.EmailConfirmed,
-                    request.User.PhoneNumber,
-                    request.User.PhoneNumberConfirmed,
-                    request.User.TwoFactorEnabled,
-                    request.User.LockoutEnd,
-                    request.User.LockoutEnabled,
-                    request.User.AccessFailedCount,
-                    request.User.IntroductionCode,
-                    request.User.CommissionPaid,
-                    request.User.Id
-                };
-                #endregion
+                _mapper.Map(request.User, user);
 
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql: sql, param: parameters);
-                
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

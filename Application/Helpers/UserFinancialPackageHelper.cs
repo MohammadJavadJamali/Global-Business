@@ -1,12 +1,12 @@
 ﻿using System;
 using MediatR;
+using System.Linq;
 using Domain.Model;
+using Application.Nodes;
 using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
 using Application.FinancialPackages;
 using Application.UserFinancialPackages;
-using System.Linq;
-using Application.Nodes;
 
 namespace Application.Helpers
 {
@@ -25,9 +25,9 @@ namespace Application.Helpers
             , UserFinancialDTO userFinancialDTO
             , IMediator mediator)
         {
-            var financialPackageFromDb = await mediator.Send(new FindFinancialPackageByIdAsync.Query(userFinancialDTO.FinancialPackageId));
+            var financialPackage = await mediator.Send(new FindFinancialPackageByIdAsync.Query(userFinancialDTO.FinancialPackageId));
 
-            if (financialPackageFromDb is null)
+            if (financialPackage is null)
                 return false;
 
 
@@ -38,20 +38,11 @@ namespace Application.Helpers
 
             //Dates are set in the create function in the repository
             userFinance.User = user;
-            userFinance.UserId = user.Id;
-            userFinance.FinancialPackage = financialPackageFromDb;
+            userFinance.FinancialPackage = financialPackage;
             userFinance.AmountInPackage = userFinancialDTO.AmountInPackage;
             userFinance.ChoicePackageDate = DateTime.Now;
             userFinance.EndFinancialPackageDate = DateTime.Now.AddMonths(userFinance.FinancialPackage.Term);
             userFinance.DayCount = (userFinance.EndFinancialPackageDate - userFinance.ChoicePackageDate).Days;
-
-            var financialPackage = await GetFinancialPackage(financialPackageFromDb, mediator);
-
-            if (financialPackage is null)
-                return false;
-
-            userFinance.FinancialPackage = financialPackage;
-            userFinance.FinancialPackageId = financialPackage.Id;
 
             var profitAmount = userFinance.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
 

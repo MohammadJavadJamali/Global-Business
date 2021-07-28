@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using Persistance;
 #endregion
 
 namespace Application.Profits
@@ -17,36 +18,19 @@ namespace Application.Profits
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = "INSERT INTO Profits (ProfitDepositDate, ProfitAmount, IsDeleted, User_Id)" +
-                    "VALUES(@ProfitDepositDate, @ProfitAmount, @IsDeleted, @User_Id)";
-                #endregion
-
-                #region params
-                var parameters = new
-                {
-                    request.Profits.ProfitDepositDate,
-                    request.Profits.ProfitAmount,
-                    request.Profits.IsDeleted,
-                    request.Profits.User_Id
-                };
-                #endregion
+                await _context.Profits.AddAsync(request.Profits);
                 
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, parameters);
-                
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

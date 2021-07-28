@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Persistance;
 #endregion
 
 namespace Application.Transactions
@@ -17,42 +18,19 @@ namespace Application.Transactions
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql =
-                    "INSERT INTO Transactions " +
-                        "(InitialBalance, Amount, FinalBalance, TransactionDate, EmailTargetAccount, User_Id, IsDeleted)" +
-                    "VALUES" +
-                        "(@InitialBalance, @Amount, @FinalBalance, @TransactionDate, @EmailTargetAccount, @User_Id, @IsDeleted)";
-                #endregion
+                await _context.Transactions.AddAsync(request.Transaction);
 
-                #region parameters
-                var parameters = new
-                {
-                    request.Transaction.InitialBalance,
-                    request.Transaction.Amount,
-                    request.Transaction.FinalBalance,
-                    request.Transaction.TransactionDate,
-                    request.Transaction.EmailTargetAccount,
-                    request.Transaction.User_Id,
-                    request.Transaction.IsDeleted
-                };
-                #endregion
-
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, parameters);
-                
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

@@ -10,37 +10,30 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using Persistance;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 #endregion
 
 namespace Application.FinancialPackages
 {
     public class WhereUserFinancialPackage
     {
-        public record Query(Func<UserFinancialPackage, bool> expression) : IRequest<List<UserFinancialPackage>>;
+        public record Query(Expression<Func<UserFinancialPackage, bool>> expression) : IRequest<List<UserFinancialPackage>>;
 
         public class Handler : IRequestHandler<Query, List<UserFinancialPackage>>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<List<UserFinancialPackage>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var sql = "SELECT * FROM UserFinancialPackages";
-
-                _dbConnection.Open();
-
-                var userFinancialPackages = (await _dbConnection.QueryAsync<UserFinancialPackage>(sql)).ToList();
-                
-                _dbConnection.Close();
-
-                var userFinancialPackage = userFinancialPackages.Where(request.expression).ToList();
-
-                return userFinancialPackage;
+                return await _context.UserFinancialPackages.Where(request.expression).AsNoTracking().ToListAsync();
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Data;
 using Domain.Model;
 using System.Threading;
 using System.Threading.Tasks;
+using Persistance;
 #endregion
 
 namespace Application.Transactions
@@ -15,25 +16,17 @@ namespace Application.Transactions
 
         public class Handler : IRequestHandler<Query, Transaction>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Transaction> Handle(Query request, CancellationToken cancellationToken)
             {
-                var sql = "SELECT * FROM Transactions WHERE Id = @Id";
-                
-                _dbConnection.Open();
-
-                var transaction = await _dbConnection.QueryFirstOrDefaultAsync(sql, new { Id = request.Id });
-
-                _dbConnection.Close();
-
-                return transaction;
+                return await _context.Transactions.FindAsync(request.Id);
             }
         }
     }

@@ -83,7 +83,7 @@ namespace API.Controllers
 
             UserFinancialDTO userFinancialDTO = new();
             userFinancialDTO.AmountInPackage = 3000000;
-            userFinancialDTO.FinancialPackageId = 2;
+            userFinancialDTO.FinancialPackageId = 1;
 
             CreateNodeDto createNodeDto = new();
             createNodeDto.IntroductionCode = user.IntroductionCode;

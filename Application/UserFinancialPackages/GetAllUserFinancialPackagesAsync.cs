@@ -10,6 +10,7 @@ using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Persistance;
 #endregion
 
 namespace Application.Nodes
@@ -20,25 +21,17 @@ namespace Application.Nodes
 
         public class Handler : IRequestHandler<Query, List<UserFinancialPackage>>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<List<UserFinancialPackage>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var sql = "SELECT * FROM UserFinancialPackages";
-
-                _dbConnection.Open();
-
-                var userFinancialPackages = (await _dbConnection.QueryAsync<UserFinancialPackage>(sql)).ToList();
-                
-                _dbConnection.Close();
-
-                return userFinancialPackages;
+                return await _context.UserFinancialPackages.AsNoTracking().ToListAsync();
             }
         }
     }

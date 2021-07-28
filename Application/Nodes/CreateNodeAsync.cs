@@ -5,6 +5,7 @@ using System.Data;
 using Domain.Model;
 using System.Threading;
 using System.Threading.Tasks;
+using Persistance;
 #endregion
 
 namespace Application.Nodes
@@ -15,42 +16,21 @@ namespace Application.Nodes
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region mCtor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = "INSERT INTO Nodes " +
-                            "(UserId, ParentId, LeftUserId, RightUserId, TotalMoneyInvested, TotalMoneyInvestedBySubsets, IntroductionCode, MinimumSubBrachInvested, IsCalculate) " +
-                      "VALUES(@UserId, @ParentId, @LeftUserId, @RightUserId, @TotalMoneyInvested, @TotalMoneyInvestedBySubsets, @IntroductionCode, @MinimumSubBrachInvested, @IsCalculate)";
-                #endregion
+                await _context
+                    .Nodes
+                    .AddAsync(request.Node);
 
-                #region parameters
-                var parameters = new
-                {
-                    request.Node.UserId,
-                    request.Node.ParentId,
-                    request.Node.LeftUserId,
-                    request.Node.RightUserId,
-                    request.Node.TotalMoneyInvested,
-                    request.Node.TotalMoneyInvestedBySubsets,
-                    request.Node.IntroductionCode,
-                    request.Node.MinimumSubBrachInvested,
-                    request.Node.IsCalculate
-                };
-                #endregion
-                
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, parameters);
-
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

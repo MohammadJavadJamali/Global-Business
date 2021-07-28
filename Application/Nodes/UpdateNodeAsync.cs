@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Z.Dapper.Plus;
 using Persistance;
 using System.Data;
+using AutoMapper;
 #endregion
 
 namespace Application.Nodes
@@ -20,41 +21,23 @@ namespace Application.Nodes
         public class Handler : IRequestHandler<Command>
         {
             #region Ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            private readonly DataContext _context;
+            private readonly IMapper _mapper;
+
+            public Handler(DataContext context, IMapper mapper)
             {
-                _dbConnection = dbConnection;
+                _context = context;
+                _mapper = mapper;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = "UPDATE Nodes SET TotalMoneyInvested = CONVERT(decimal(18, 4), @TotalMoneyInvested), " +
-                    "TotalMoneyInvestedBySubsets = CONVERT(decimal(18, 4), @TotalMoneyInvestedBySubsets), " +
-                    "MinimumSubBrachInvested = CONVERT(decimal(18, 4), @MinimumSubBrachInvested), " +
-                    "LeftUserId = @LeftUserId, RightUserId = @RightUserId, IsCalculate = @IsCalculate" +
-                    " WHERE Id = @Id";
-                #endregion
+                var entity = await _context.Nodes.FindAsync(request.Node.Id);
 
-                #region parameters
-                var parameters = new
-                {
-                    request.Node.TotalMoneyInvested,
-                    request.Node.TotalMoneyInvestedBySubsets,
-                    request.Node.MinimumSubBrachInvested,
-                    request.Node.LeftUserId,
-                    request.Node.RightUserId,
-                    request.Node.IsCalculate,
-                    request.Node.Id
-                };
-                #endregion
-                
-                _dbConnection.Open();
+                _mapper.Map(request.Node, entity);
 
-                await _dbConnection.ExecuteAsync(sql, parameters);
-
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

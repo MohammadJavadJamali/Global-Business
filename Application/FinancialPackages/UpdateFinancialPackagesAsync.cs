@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Persistance;
+using AutoMapper;
 #endregion
 
 namespace Application.FinancialPackages
@@ -17,37 +19,24 @@ namespace Application.FinancialPackages
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            private readonly IMapper _mapper;
+
+            public Handler(DataContext context, IMapper mapper)
             {
-                _dbConnection = dbConnection;
+                _context = context;
+                _mapper = mapper;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = 
-                    "UPDATE FinancialPackages " +
-                    "SET " +
-                        "ProfitPercent = @ProfitPercent, Term = @Term WHERE Id = @Id";
-                #endregion
+                var entity = await _context.FinancialPackages.FindAsync(request.financialPackage.Id);
 
-                #region parameters
-                var parameters = new
-                {
-                    request.financialPackage.ProfitPercent,
-                    request.financialPackage.Term,
-                    request.financialPackage.Id
-                };
-                #endregion
+                _mapper.Map(request.financialPackage, entity);
 
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, parameters);
-
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
 

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Persistance;
 #endregion
 
 namespace Application.UserFinancialPackages
@@ -17,43 +18,26 @@ namespace Application.UserFinancialPackages
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql =
-                    "INSERT INTO UserFinancialPackages " +
-                        "(UserId, FinancialPackageId, ChoicePackageDate, EndFinancialPackageDate, AmountInPackage, IsDeleted, ProfitAmountPerDay, DayCount)" +
-                    "VALUES" +
-                    "   (@UserId, @FinancialPackageId, @ChoicePackageDate, @EndFinancialPackageDate, @AmountInPackage, @IsDeleted, @ProfitAmountPerDay, @DayCount)";
-                #endregion
-
-                #region parameters
-                var parameters = new
+                try
                 {
-                    request.UserFinancialPackage.UserId,
-                    request.UserFinancialPackage.FinancialPackageId,
-                    request.UserFinancialPackage.ChoicePackageDate,
-                    request.UserFinancialPackage.EndFinancialPackageDate,
-                    request.UserFinancialPackage.AmountInPackage,
-                    request.UserFinancialPackage.IsDeleted,
-                    request.UserFinancialPackage.ProfitAmountPerDay,
-                    request.UserFinancialPackage.DayCount
-                };
-                #endregion
+                    await _context.UserFinancialPackages.AddAsync(request.UserFinancialPackage);
 
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, parameters);
-                
-                _dbConnection.Close();
+                    await _context.SaveChangesAsync();
+                }
+                catch (System.Exception)
+                {
+                    throw;
+                }
 
                 return Unit.Value;
             }

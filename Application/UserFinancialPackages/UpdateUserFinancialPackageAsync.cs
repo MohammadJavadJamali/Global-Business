@@ -7,6 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Persistance;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 #endregion
 
 namespace Application.UserFinancialPackages
@@ -17,42 +20,29 @@ namespace Application.UserFinancialPackages
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            private readonly IMapper _mapper;
+
+            public Handler(DataContext context, IMapper mapper)
             {
-                _dbConnection = dbConnection;
+                _context = context;
+                _mapper = mapper;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = "UPDATE UserFinancialPackages SET " +
-                    "ChoicePackageDate = @ChoicePackageDate, EndFinancialPackageDate = @EndFinancialPackageDate, " +
-                    "AmountInPackage = @AmountInPackage, IsDeleted = @IsDeleted, ProfitAmountPerDay = @ProfitAmountPerDay, " +
-                    "DayCount = @DayCount WHERE UserId = '@UserId' AND FinancialPackageId = @FinancialPackageId ";
-                #endregion
 
-                #region parameters
-                var parameters = new
-                {
-                    request.UserFinancialPackages.ChoicePackageDate,
-                    request.UserFinancialPackages.EndFinancialPackageDate,
-                    request.UserFinancialPackages.AmountInPackage,
-                    request.UserFinancialPackages.IsDeleted,
-                    request.UserFinancialPackages.ProfitAmountPerDay,
-                    request.UserFinancialPackages.DayCount,
-                    request.UserFinancialPackages.UserId,
-                    request.UserFinancialPackages.FinancialPackageId
-                };
-                #endregion
+                var userFinancialPackage = await _context
+                    .UserFinancialPackages
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.UserId == request.UserFinancialPackages.UserId 
+                                          && x.FinancialPackageId == request.UserFinancialPackages.FinancialPackageId);
 
-                _dbConnection.Open();
+                _mapper.Map(request.UserFinancialPackages, userFinancialPackage);
 
-                await _dbConnection.ExecuteAsync(sql, parameters);
-                
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

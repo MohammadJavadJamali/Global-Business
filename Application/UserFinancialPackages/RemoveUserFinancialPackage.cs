@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Persistance;
 #endregion
 
 namespace Application.UserFinancialPackages
@@ -17,35 +18,19 @@ namespace Application.UserFinancialPackages
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                #region sql
-                var sql = 
-                    "DELETE FROM UserFinancialPackages" +
-                    " WHERE UserId = @UserId And FinancialPackageId = @FinancialpackageId";
-                #endregion
+                _context.UserFinancialPackages.Remove(request.UserFinancialPackage);
 
-                #region parameters
-                var parameters = new
-                {
-                    request.UserFinancialPackage.UserId,
-                    request.UserFinancialPackage.FinancialPackageId
-                };
-                #endregion
-
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, parameters);
-
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

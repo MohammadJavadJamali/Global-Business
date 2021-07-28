@@ -1,6 +1,7 @@
 ﻿#region using
 using Dapper;
 using MediatR;
+using Persistance;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,25 +15,21 @@ namespace Application.FinancialPackages
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
+                var entity = await _context.FinancialPackages.FindAsync(request.Id);
 
-                var sql = "DELETE FROM FinancialPackages WHERE Id = @Id";
+                _context.FinancialPackages.Remove(entity);
 
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, new { request.Id });
-                
-                _dbConnection.Close();
-
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }

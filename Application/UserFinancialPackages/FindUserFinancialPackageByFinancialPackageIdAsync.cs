@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Persistance;
 #endregion
 
 namespace Application.UserFinancialPackages
@@ -21,25 +22,17 @@ namespace Application.UserFinancialPackages
 
         public class Handler : IRequestHandler<Query, UserFinancialPackage>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
-            #endregion 
+            #endregion
 
             public async Task<UserFinancialPackage> Handle(Query request, CancellationToken cancellationToken)
             {
-                var sql = "SELECT * FROM UserFinancialPackages WHERE FinancialPackageId = @Id";
-
-                _dbConnection.Open();
-
-                var userFinancialPackage = await _dbConnection.QueryFirstOrDefaultAsync(sql, new { Id = request.Id });
-
-                _dbConnection.Close();
-
-                return userFinancialPackage;
+                return await _context.UserFinancialPackages.FindAsync(request.Id);
             }
         }
     }

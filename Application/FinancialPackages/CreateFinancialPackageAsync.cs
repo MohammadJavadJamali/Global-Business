@@ -5,6 +5,7 @@ using System.Data;
 using Domain.Model;
 using System.Threading;
 using System.Threading.Tasks;
+using Persistance;
 #endregion
 
 namespace Application.FinancialPackages
@@ -15,29 +16,19 @@ namespace Application.FinancialPackages
 
         public class Handler : IRequestHandler<Command>
         {
-            #region ctor
-            private readonly IDbConnection _dbConnection;
-            public Handler(IDbConnection dbConnection)
+            #region Ctor
+            private readonly DataContext _context;
+            public Handler(DataContext context)
             {
-                _dbConnection = dbConnection;
+                _context = context;
             }
             #endregion
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                var sql = "INSERT INTO FinancialPackages (ProfitPercent, Term, IsDeleted) " +
-                    "VALUES(@ProfitPercent, @Term, @IsDeleted)";
+                await _context.AddAsync(request.FinancialPackage);
 
-                _dbConnection.Open();
-
-                await _dbConnection.ExecuteAsync(sql, new
-                {
-                    request.FinancialPackage.ProfitPercent,
-                    request.FinancialPackage.Term,
-                    request.FinancialPackage.IsDeleted
-                });
-
-                _dbConnection.Close();
+                await _context.SaveChangesAsync();
 
                 return Unit.Value;
             }
