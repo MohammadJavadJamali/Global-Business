@@ -67,6 +67,7 @@ namespace API.Jobs
             {
                 node.TotalMoneyInvestedBySubsets = 0;
                 node.MinimumSubBrachInvested = 0;
+                node.IsCalculate = true;
 
                 _node.Update(node);
             }

@@ -222,7 +222,6 @@ namespace API.Controllers
 
         private async Task<decimal> MinimumSubBranch(Node node)
         {
-
             var leftNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.LeftUserId, y => y.AppUser);
             var rightNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.RightUserId, y => y.AppUser);
 
@@ -235,6 +234,15 @@ namespace API.Controllers
                     leftNode.TotalMoneyInvested > rightNode.TotalMoneyInvested ?
                     rightNode.TotalMoneyInvested : leftNode.TotalMoneyInvested;
             }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested >
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested ?
+
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested
+                    : leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested;
+            }
             else if (leftNode.LeftUserId is not null || rightNode.LeftUserId is not null)
             {
                 return
@@ -243,7 +251,6 @@ namespace API.Controllers
             }
             else
                 return 0;
-
         }
 
         #endregion
