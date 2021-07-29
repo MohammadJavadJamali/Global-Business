@@ -97,8 +97,6 @@ namespace API.Jobs
             }
             if (node.RightUserId is not null && node.AppUser.CommissionPaid is false)
             {
-                rightNode = await _node
-                    .FirstOrDefaultAsync(u => u.AppUser.Id == node.RightUserId, x => x.AppUser);
 
                 var commission = node.MinimumSubBrachInvested * 10 / 100;
 
@@ -111,7 +109,8 @@ namespace API.Jobs
                     TransactionHelper.CreateTransaction(_user, node.AppUser, commission, _transaction);
                 }
 
-                _node.Update(node);
+                rightNode = await _node
+                    .FirstOrDefaultAsync(u => u.AppUser.Id == node.RightUserId, x => x.AppUser);
 
                 await recursive(rightNode);
             }
