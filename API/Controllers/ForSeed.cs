@@ -182,30 +182,35 @@ namespace API.Controllers
             parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
 
             _node.Update(parentNode);
-            await _save.SaveChangeAsync();
 
             do
             {
-                //this is the logined user (curent user) parent`s parent !
-                parentNode = await _node
-                    .FirstOrDefaultAsync(x => x.AppUser.Id == parentNode.ParentId, y => y.AppUser);
-
-                //If the current user is an Admin child(in one step); This condition applies
-                if (parentNode is null)
+                if (!curentNode.IsCalculate)
                 {
-                    await _save.SaveChangeAsync();
+                    //this is the logined user (curent user) parent`s parent !
+                    parentNode = await _node
+                        .FirstOrDefaultAsync(x => x.AppUser.Id == parentNode.ParentId, y => y.AppUser);
 
-                    return true;
+                    //If the current user is an Admin child(in one step); This condition applies
+                    if (parentNode is null)
+                    {
+                        await _save.SaveChangeAsync();
+
+                        return true;
+                    }
+
+                    parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
+
+                    parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
+
+                    parentNode.AppUser.CommissionPaid = false;
+
+                    _node.Update(parentNode);
                 }
-
-                parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
-
-                parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
-
-                parentNode.AppUser.CommissionPaid = false;
-
-                _node.Update(parentNode);
-
+                else
+                {
+                    continue;
+                }
 
             } while (parentNode.ParentId is not null);
 

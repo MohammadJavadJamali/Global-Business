@@ -155,36 +155,48 @@ namespace API.Controllers
 
             await _save.SaveChangeAsync();
 
+
+
             var parentNode = parentUser.Node;
 
             parentNode.TotalMoneyInvestedBySubsets += createNodeDto.UserFinancialDTO.AmountInPackage;
 
             parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
 
-            await _node.UpdateAsync(parentNode);
+            _node.Update(parentNode);
 
             do
             {
-                //this is the logined user (curent user) parent`s parent !
-                parentNode = await _node
-                    .FirstOrDefaultAsync(x => x.AppUser.Id == parentNode.ParentId, y => y.AppUser);
+                if (!curentNode.IsCalculate)
+                {
+                    //this is the logined user (curent user) parent`s parent !
+                    parentNode = await _node
+                        .FirstOrDefaultAsync(x => x.AppUser.Id == parentNode.ParentId, y => y.AppUser);
 
-                //If the current user is an Admin child(in one step); This condition applies
-                if (parentNode is null)
-                    return true;
+                    //If the current user is an Admin child(in one step); This condition applies
+                    if (parentNode is null)
+                    {
+                        await _save.SaveChangeAsync();
 
-                parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
+                        return true;
+                    }
 
-                parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
+                    parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
 
-                parentNode.AppUser.CommissionPaid = false;
+                    parentNode.MinimumSubBrachInvested = await MinimumSubBranch(parentNode);
 
-                await _node.UpdateAsync(parentNode);
+                    parentNode.AppUser.CommissionPaid = false;
 
+                    _node.Update(parentNode);
+                }
+                else
+                {
+                    continue;
+                }
 
             } while (parentNode.ParentId is not null);
 
-
+            await _save.SaveChangeAsync();
 
             return true;
         }
