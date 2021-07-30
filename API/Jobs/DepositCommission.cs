@@ -9,6 +9,7 @@ using Application.Helpers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Application.Users;
+using Application;
 #endregion
 
 namespace API.Jobs
@@ -60,6 +61,8 @@ namespace API.Jobs
 
                 await _mediator.Send(new UpdateNodeAsync.Command(node));
             }
+            await _mediator.Send(new Save.Command());
+
             watch2.Stop();
             _logger.LogInformation($"time to set zero : {watch2.ElapsedMilliseconds} ms");
 
