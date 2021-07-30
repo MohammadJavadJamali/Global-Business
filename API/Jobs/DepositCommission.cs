@@ -61,7 +61,7 @@ namespace API.Jobs
             watch1.Stop();
             _logger.LogInformation($"time to traverse tree : {watch1.ElapsedMilliseconds} ms");
 
-            var nodes = await _node.GetAll(n => n.TotalMoneyInvestedBySubsets > 0);
+            var nodes = await _node.GetAll();
 
             foreach (var node in nodes)
             {
