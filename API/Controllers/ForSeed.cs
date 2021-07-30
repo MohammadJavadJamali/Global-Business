@@ -268,7 +268,6 @@ namespace API.Controllers
             for (int i = 0; i < count; i++)
             {
                 await SeedUserToNood(userToNodeDto);
-                //await _save.SaveChangeAsync();
             }
 
             watch.Stop();

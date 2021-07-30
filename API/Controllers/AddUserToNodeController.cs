@@ -153,8 +153,6 @@ namespace API.Controllers
 
             await _userManager.AddToRoleAsync(curentUser, "node");
 
-            await _save.SaveChangeAsync();
-
 
 
             var parentNode = parentUser.Node;
