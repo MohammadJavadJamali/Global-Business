@@ -167,7 +167,10 @@ namespace API.Controllers
 
                     //If the current user is an Admin child(in one step); This condition applies
                     if (parentNode is null)
+                    {
+                        await _mediator.Send(new Save.Command());
                         return true;
+                    }
 
                     parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
 

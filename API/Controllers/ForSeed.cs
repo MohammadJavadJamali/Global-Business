@@ -159,7 +159,6 @@ namespace API.Controllers
             if (parentUser.Node.LeftUserId == parentUser.Node.RightUserId)
                 return false;
 
-            //await _mediator.Send(new Save.Command());
 
             //Update Parent Node 
             await _mediator.Send(new UpdateNodeAsync.Command(parentUser.Node));
@@ -185,7 +184,10 @@ namespace API.Controllers
 
                     //If the current user is an Admin child(in one step); This condition applies
                     if (parentNode is null)
+                    {
+                        await _mediator.Send(new Save.Command());
                         return true;
+                    }
 
                     parentNode.TotalMoneyInvestedBySubsets += curentNode.TotalMoneyInvested;
 
