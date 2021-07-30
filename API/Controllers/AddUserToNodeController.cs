@@ -145,8 +145,6 @@ namespace API.Controllers
             if (parentUser.Node.LeftUserId == parentUser.Node.RightUserId)
                 return false;
 
-            await _mediator.Send(new Save.Command());
-
             //Update Parent Node 
             await _mediator.Send(new UpdateNodeAsync.Command(parentUser.Node));
 
