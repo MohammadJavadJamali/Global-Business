@@ -34,6 +34,7 @@ namespace Application.Users
             {
                 return await _context
                     .Users
+                    .Include(uf => uf.UserFinancialPackages)
                     .Include(u => u.UserFinancialPackages)
                     .ToListAsync();
             }

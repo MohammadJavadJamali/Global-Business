@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Application;
 
 namespace API.Controllers
 {
@@ -59,7 +60,7 @@ namespace API.Controllers
             var res = await UserFinancialPackageHelper
                 .CreateUserFinancialPackage(currentUser, financialDTO, _mediator);
 
-
+            await _mediator.Send(new Save.Command());
 
             //var node = await _node.GetByUserId(currentUser.Id);
             //var parentNode = await _node.GetByUserId(node.ParentId);
@@ -75,6 +76,8 @@ namespace API.Controllers
             await _mediator.Send(new UpdateNodeAsync.Command(node));
             await _mediator.Send(new UpdateNodeAsync.Command(parentNode));
 
+            await _mediator.Send(new Save.Command());
+
             if (res)
                 return Ok();
             else
@@ -84,31 +87,6 @@ namespace API.Controllers
         #endregion
 
         #region Helper
-
-        private async Task<bool> DontHaveEnoughMony(UserFinancialDTO financialDTO, AppUser user)
-        {
-            decimal sumAmountInPackages = await SumAmountInPackages(user);
-
-            if (sumAmountInPackages == 0)
-            {
-                return user.AccountBalance < financialDTO.AmountInPackage ? true : false;
-            }
-
-            return user.AccountBalance < sumAmountInPackages + financialDTO.AmountInPackage ? true : false;
-        }
-
-        /// <summary>
-        /// get account balance that financial packages have been reduced
-        /// </summary>
-        /// <param name="financialDTO"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        private async Task<decimal> GetPureAccountBalance(AppUser user)
-        {
-            decimal sumAmountInPackages = await SumAmountInPackages(user);
-
-            return user.AccountBalance - sumAmountInPackages;
-        }
 
         /// <summary>
         ///Returns total deposits of user financial packages

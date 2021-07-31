@@ -33,6 +33,7 @@ namespace Application.Users
                 return await _context
                     .Users
                     .Include(n => n.Node)
+                    .Include(uf => uf.UserFinancialPackages)
                     .FirstOrDefaultAsync(u => u.IntroductionCode == request.IntroductionCode);
             }
         }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Application.UserFinancialPackages;
+using Application;
 #endregion
 
 namespace API.Jobs
@@ -79,6 +80,8 @@ namespace API.Jobs
                         break;
                 }
             }
+            await _mediator.Send(new Save.Command());
+
             _logger.LogInformation($"deposit profit for {users.Count()} users");
         }
 

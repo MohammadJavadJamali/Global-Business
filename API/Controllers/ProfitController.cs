@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
+using Application;
 
 namespace API.Controllers
 {
@@ -32,6 +33,9 @@ namespace API.Controllers
             profit.User = profitDTO.AppUser;
 
             await _mediator.Send(new CreateProfitAsync.Command(profit));
+ 
+            await _mediator.Send(new Save.Command());
+
         }
 
         [HttpGet]

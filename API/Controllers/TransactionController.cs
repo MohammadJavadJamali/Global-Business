@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-#endregion 
+using Application;
+#endregion
 
 namespace API.Controllers
 {
@@ -54,12 +55,18 @@ namespace API.Controllers
                 if (currentUser.NormalizedEmail == targetUser.Email.ToUpper())
                 {
                     await TransactionHelper.CreateTransaction(currentUser, transactionDTo.Amount, _mediator);
+                    
+                    await _mediator.Send(new Save.Command());
+
                 }
                 else
                 {
                     await TransactionHelper.CreateTransaction(currentUser, -1 * transactionDTo.Amount, _mediator);
 
                     await TransactionHelper.CreateTransaction(targetUser, transactionDTo.Amount, _mediator);
+
+                    await _mediator.Send(new Save.Command());
+
                 }
 
                 return Ok();

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Application.FinancialPackages;
 using Microsoft.AspNetCore.Authorization;
+using Application;
 #endregion
 
 namespace API.Controllers
@@ -54,6 +55,7 @@ namespace API.Controllers
             try
             {
                 await _mediator.Send(new CreateFinancialPackageAsync.Command(financialPackage));
+                await _mediator.Send(new Save.Command());
                 return Ok();
             }
             catch (Exception)
@@ -72,6 +74,9 @@ namespace API.Controllers
             try
             {
                 var res = await _mediator.Send(new RemoveFinancialPackages.Command(id));
+
+                await _mediator.Send(new Save.Command());
+
                 return Ok();
             }
             catch (Exception)
@@ -95,6 +100,9 @@ namespace API.Controllers
             try
             {
                 await _mediator.Send(new UpdateFinancialPackagesAsync.Command(financialPackageFromDb));
+                
+                await _mediator.Send(new Save.Command());
+
                 return Ok();
             }
             catch (Exception)
