@@ -49,8 +49,8 @@ namespace API.Controllers
 
                 //var targetUser = await _user
                 //    .FirstOrDefaultAsync(u => u.Email == transactionDTo.EmailTargetAccount, null);
-                var targetUser = await _mediator
-                    .Send(new FindUserByIntroductionCodeAsync.Query(transactionDTo.EmailTargetAccount));
+                
+                var targetUser = await _userManager.FindByEmailAsync(transactionDTo.EmailTargetAccount);
 
                 if (currentUser.NormalizedEmail == targetUser.Email.ToUpper())
                 {
