@@ -11,13 +11,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 #endregion
 
 namespace API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[Controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class AddUserToNodeController : ControllerBase
     {
         #region Ctor

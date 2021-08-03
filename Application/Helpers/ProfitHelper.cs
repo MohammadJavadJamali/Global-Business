@@ -9,8 +9,8 @@ namespace Application.Helpers
     {
         public static async Task CreateProfit(
               AppUser user
-            , decimal profitAmount,
-              IMediator mediator)
+            , decimal profitAmount
+            , IMediator mediator)
         {
             Profit profit = new();
 

@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-#endregion 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+#endregion
 
 namespace API.Controllers
 {
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
     [Route("api/[controller]")]
     public class TransactionController : ControllerBase

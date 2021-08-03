@@ -9,12 +9,17 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Application.FinancialPackages;
 using Microsoft.AspNetCore.Authorization;
+using Serilog;
+using Microsoft.Extensions.Logging;
+using Application;
+using System.Linq;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 #endregion
 
 namespace API.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     [Route("api/[controller]")]
     public class FinancialPackageController : ControllerBase
     {
@@ -63,6 +68,23 @@ namespace API.Controllers
 
         }
 
+        [HttpPost("CreatList")]
+        public async Task<ActionResult> CreateListFinancialPackage(List<FinancialPackage> financialPackages)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("All filds are requird!");
+
+            try
+            {
+                await _mediator.Send(new CreateListOfFinancialPackageAsync.Command(financialPackages));
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return Ok();
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteFinancialPackage(int id)
         {
@@ -78,7 +100,6 @@ namespace API.Controllers
             {
                 throw;
             }
-
         }
 
         [HttpPut("{id}")]
@@ -95,6 +116,24 @@ namespace API.Controllers
             try
             {
                 await _mediator.Send(new UpdateFinancialPackagesAsync.Command(financialPackageFromDb));
+                return Ok();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+        }
+
+        [HttpPut("UpdateList")]
+        public async Task<ActionResult> UpdateListFinancial(List<FinancialPackage> financialPackages)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("All fields are required!");
+
+            try
+            {
+                await _mediator.Send(new UpdateListFinancialPackageAsync.Command(financialPackages));
                 return Ok();
             }
             catch (Exception)

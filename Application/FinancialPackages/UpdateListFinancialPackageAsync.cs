@@ -5,14 +5,14 @@ using System.Data;
 using Domain.Model;
 using System.Threading;
 using System.Threading.Tasks;
-using Dapper.Contrib.Extensions;
+using System.Collections.Generic;
 #endregion
 
 namespace Application.FinancialPackages
 {
-    public class CreateFinancialPackageAsync
+    public class UpdateListFinancialPackageAsync
     {
-        public record Command(FinancialPackage FinancialPackage) : IRequest;
+        public record Command(List<FinancialPackage> financialPackages) : IRequest;
 
         public class Handler : IRequestHandler<Command>
         {
@@ -26,22 +26,23 @@ namespace Application.FinancialPackages
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                var sql = "INSERT INTO FinancialPackages (ProfitPercent, Term, IsDeleted) " +
-                    "VALUES(@ProfitPercent, @Term, @IsDeleted)";
+                #region sql
+                var sql =
+                    "UPDATE FinancialPackages " +
+                    "SET " +
+                        "ProfitPercent = @ProfitPercent, Term = @Term WHERE Id = @Id";
+                #endregion
+
+                FinancialPackage[] financialPackages = request.financialPackages.ToArray();
 
                 _dbConnection.Open();
 
-                await _dbConnection.ExecuteAsync(sql, new
-                {
-                    request.FinancialPackage.ProfitPercent,
-                    request.FinancialPackage.Term,
-                    request.FinancialPackage.IsDeleted
-                });
+                await _dbConnection.ExecuteAsync(sql, financialPackages);
 
                 _dbConnection.Close();
 
-
                 return Unit.Value;
+
             }
         }
     }
