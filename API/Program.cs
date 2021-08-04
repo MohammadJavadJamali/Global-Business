@@ -11,6 +11,7 @@ namespace API
 {
     public class Program
     {
+        [Obsolete]
         public static void Main(string[] args)
         {
             CreateMSSqlLogger();
@@ -27,6 +28,7 @@ namespace API
                     .UseSerilog();
                 });
 
+        [Obsolete]
         public static void CreateMSSqlLogger()
         {
             var connectionString = "server=.\\sql2019; DataBase=MiniBankdb-dapper; Trusted_Connection=true; MultipleActiveResultSets=true";
@@ -49,9 +51,9 @@ namespace API
                             };
 
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
+                .MinimumLevel.Warning()
                 .MinimumLevel.Override("SerilogDemo", LogEventLevel.Information)
-                .WriteTo.MSSqlServer(connectionString, tableName, columnOptions: columnOption)
+                .WriteTo.MSSqlServer(connectionString, tableName, columnOptions: columnOption, autoCreateSqlTable: true)
                 .CreateLogger();
         }
     }

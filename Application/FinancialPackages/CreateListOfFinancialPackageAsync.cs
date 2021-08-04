@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using MediatR;
+using System.Linq;
 using System.Data;
 using Domain.Model;
 using System.Threading;
@@ -11,9 +12,9 @@ namespace Application.FinancialPackages
     public class CreateListOfFinancialPackageAsync
     {
 
-        public record Command(List<FinancialPackage> FinancialPackages) : IRequest;
+        public record Command(List<FinancialPackage> FinancialPackages) : IRequest<int>;
 
-        public class Handler : IRequestHandler<Command>
+        public class Handler : IRequestHandler<Command, int>
         {
             #region ctor
             private readonly IDbConnection _dbConnection;
@@ -23,7 +24,7 @@ namespace Application.FinancialPackages
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<int> Handle(Command request, CancellationToken cancellationToken)
             {
 
                 var sql = "INSERT INTO FinancialPackages (ProfitPercent, Term, IsDeleted) " +
@@ -33,11 +34,11 @@ namespace Application.FinancialPackages
 
                 _dbConnection.Open();
 
-                await _dbConnection.ExecuteAsync(sql, request.FinancialPackages);
+                var res = await _dbConnection.ExecuteAsync(sql, request.FinancialPackages);
 
                 _dbConnection.Close();
 
-                return Unit.Value;
+                return res;
             }
         }
     }

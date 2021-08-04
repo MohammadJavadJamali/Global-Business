@@ -49,7 +49,6 @@ namespace API.Services
 
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials signingCredentials, List<Claim> claims)
         {
-            var jwtSettings = _config.GetSection("jwt");
 
             var tokenOptions = new JwtSecurityToken(
                 claims: claims,

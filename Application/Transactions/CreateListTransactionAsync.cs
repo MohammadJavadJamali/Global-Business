@@ -14,9 +14,9 @@ namespace Application.Transactions
 {
     public class CreateListTransactionAsync
     {
-        public record Command(List<Transaction> Transaction) : IRequest;
+        public record Command(List<Transaction> Transaction) : IRequest<int>;
 
-        public class Handler : IRequestHandler<Command>
+        public class Handler : IRequestHandler<Command, int>
         {
             #region ctor
             private readonly IDbConnection _dbConnection;
@@ -26,7 +26,7 @@ namespace Application.Transactions
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<int> Handle(Command request, CancellationToken cancellationToken)
             {
                 #region sql
                 var sql =
@@ -38,11 +38,11 @@ namespace Application.Transactions
 
                 _dbConnection.Open();
 
-                await _dbConnection.ExecuteAsync(sql, request.Transaction);
+                var res = await _dbConnection.ExecuteAsync(sql, request.Transaction);
                 
                 _dbConnection.Close();
 
-                return Unit.Value;
+                return res;
             }
         }
     }

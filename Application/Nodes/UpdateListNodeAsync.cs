@@ -12,9 +12,9 @@ namespace Application.Nodes
 {
     public class UpdateListNodeAsync
     {
-        public record Command(List<Node> Nodes) : IRequest;
+        public record Command(List<Node> Nodes) : IRequest<int>;
 
-        public class Handler : IRequestHandler<Command>
+        public class Handler : IRequestHandler<Command, int>
         {
             #region Ctor
             private readonly IDbConnection _dbConnection;
@@ -24,7 +24,7 @@ namespace Application.Nodes
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<int> Handle(Command request, CancellationToken cancellationToken)
             {
                 #region sql
                 var sql = "UPDATE Nodes SET TotalMoneyInvested = CONVERT(decimal(18, 4), @TotalMoneyInvested), " +
@@ -36,11 +36,11 @@ namespace Application.Nodes
                 
                 _dbConnection.Open();
 
-                await _dbConnection.ExecuteAsync(sql, request.Nodes);
+                var res = await _dbConnection.ExecuteAsync(sql, request.Nodes);
 
                 _dbConnection.Close();
 
-                return Unit.Value;
+                return res;
             }
         }
     }

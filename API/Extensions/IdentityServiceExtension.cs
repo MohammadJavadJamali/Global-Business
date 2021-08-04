@@ -35,10 +35,8 @@ namespace API.Extensions
                     {
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = key,
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidIssuer = config["JWT:Issuer"],
-                        ValidAudience = config["JWT:Issuer"]
+                        ValidateIssuer = false,
+                        ValidateAudience = false
                     };
                 });
 

@@ -39,43 +39,70 @@ namespace API.Jobs
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var start = DateTime.Now;
-
-            var workTime = new Stopwatch();
-            workTime.Start();
-
-
-            var rootNode = await _mediator.Send(new FirstOrDefaultNodeAsync.Query(x => x.ParentId == null));
-
-            var totalCommision = await recursive(rootNode);
-
-            await _mediator.Send(new CreateListProfitAsync.Command(profits));
-            await _mediator.Send(new CreateListTransactionAsync.Command(transactions));
-            await _mediator.Send(new UpdateListUserAsync.Command(users));
-
-            var nodes = await _mediator.Send(new GetAllNodesAsync.Query());
-
-            foreach (var node in nodes)
+            bool done = false;
+            do
             {
-                node.TotalMoneyInvestedBySubsets = 0;
-                node.MinimumSubBrachInvested = 0;
-                node.IsCalculate = true;
-            }
+                var start = DateTime.Now;
 
-            await _mediator.Send(new UpdateListNodeAsync.Command(nodes));
+                var workTime = new Stopwatch();
+                workTime.Start();
 
+                var rootNode = await _mediator.Send(new FirstOrDefaultNodeAsync.Query(x => x.ParentId == null));
 
-            workTime.Stop();
+                var totalCommision = await recursive(rootNode);
 
-            Log.Logger
-               .ForContext("Count", nodes.Where(n => n.AppUser.CommissionPaid is false).Count())
-               .ForContext("TotalDeposit", totalCommision)
-               .ForContext("Status", "Success")
-               .ForContext("Start", start)
-               .ForContext("End", DateTime.Now)
-               .ForContext("Type", SP.Commission)
-               .Information($"time to pay commission : {workTime.ElapsedMilliseconds} ms");
+                var profitResult = await _mediator.Send(new CreateListProfitAsync.Command(profits));
+                if (profitResult < 0)
+                {
+                    WriteLog(0, totalCommision, SP.Fail, start, DateTime.Now, SP.Commission
+                        , "problem in create profits");
 
+                    continue;
+                }
+
+                var transactionResult = await _mediator.Send(new CreateListTransactionAsync.Command(transactions));
+                if (transactionResult < 0)
+                {
+                    WriteLog(0, totalCommision, SP.Fail, start, DateTime.Now, SP.Commission
+                        , "problem in create transactions");
+                    continue;
+                }
+
+                var userResult = await _mediator.Send(new UpdateListUserAsync.Command(users));
+                if (userResult < 0)
+                {
+                    WriteLog(0, totalCommision, SP.Fail, start, DateTime.Now, SP.Commission
+                         , "problem in update users");
+
+                    continue;
+                }
+
+                var nodes = await _mediator.Send(new GetAllNodesAsync.Query());
+
+                foreach (var node in nodes)
+                {
+                    node.TotalMoneyInvestedBySubsets = 0;
+                    node.MinimumSubBrachInvested = 0;
+                    node.IsCalculate = true;
+                }
+
+                var nodeResult = await _mediator.Send(new UpdateListNodeAsync.Command(nodes));
+                if (nodeResult < 0)
+                {
+                    WriteLog(0, totalCommision, SP.Fail, start, DateTime.Now, SP.Commission
+                        , "problem in update nodes");
+                    continue;
+                }
+
+                workTime.Stop();
+
+                WriteLog(nodes.Where(n => n.AppUser.CommissionPaid is false).Count(), 
+                    totalCommision, SP.Success, start, DateTime.Now, SP.Commission
+                        , $"time to pay commission : {workTime.ElapsedMilliseconds} ms");
+                
+                done = true;
+
+            } while (!done);
         }
         #endregion
 
@@ -86,7 +113,9 @@ namespace API.Jobs
         public Node rightNode { get; set; }
 
         List<Transaction> transactions = new();
-        List<Profit> profits = new();
+
+        IQueryable<Profit> profits ;
+
         List<AppUser> users = new();
         decimal totalCommision = 0;
 
@@ -96,7 +125,7 @@ namespace API.Jobs
             {
                 leftNode = await _mediator
                     .Send(new FirstOrDefaultNodeAsync.Query(x => x.AppUser.Id == node.LeftUserId));
-                
+
                 await recursive(leftNode);
             }
             if (node.RightUserId is not null && node.AppUser.CommissionPaid is false)
@@ -107,6 +136,7 @@ namespace API.Jobs
 
                 if (commission is not 0)
                 {
+                    #region transaction
                     Transaction transaction = new();
                     transaction.Amount = commission;
                     transaction.InitialBalance = node.AppUser.AccountBalance;
@@ -115,18 +145,23 @@ namespace API.Jobs
                     transaction.User = node.AppUser;
                     transaction.User_Id = node.AppUser.Id;
                     transaction.TransactionDate = DateTime.Now;
+                    #endregion
 
                     node.AppUser.AccountBalance += commission;
 
+                    #region profit
                     Profit profit = new();
                     profit.User = node.AppUser;
                     profit.User_Id = node.AppUser.Id;
                     profit.ProfitAmount = commission;
                     profit.ProfitDepositDate = DateTime.Now;
+                    #endregion
 
+                    #region add to list
                     transactions.Add(transaction);
-                    profits.Add(profit);
+                    profits.Append<Profit>(profit);
                     users.Add(node.AppUser);
+                    #endregion
 
                     totalCommision += commission;
                 }
@@ -140,5 +175,18 @@ namespace API.Jobs
             return totalCommision;
         }
         #endregion
+
+        private void WriteLog(int count, decimal totalCommision, string status, DateTime start,
+            DateTime end, string type, string message)
+        {
+            Log.Logger
+                .ForContext("Count", count)
+                .ForContext("TotalDeposit", totalCommision)
+                .ForContext("Status", status)
+                .ForContext("Start", start)
+                .ForContext("End", end)
+                .ForContext("Type", type)
+                .Warning(message);
+        }
     }
 }

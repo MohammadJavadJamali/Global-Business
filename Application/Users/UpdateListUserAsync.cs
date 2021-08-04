@@ -14,9 +14,9 @@ namespace Application.Users
 {
     public class UpdateListUserAsync
     {
-        public record Command(List<AppUser> User) : IRequest;
+        public record Command(List<AppUser> User) : IRequest<int>;
 
-        public class Handler : IRequestHandler<Command>
+        public class Handler : IRequestHandler<Command, int>
         {
             #region Ctor
             private readonly IDbConnection _dbConnection;
@@ -26,7 +26,7 @@ namespace Application.Users
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<int> Handle(Command request, CancellationToken cancellationToken)
             {
                 #region sql
                 var sql = "UPDATE AspNetUsers SET " +
@@ -39,11 +39,11 @@ namespace Application.Users
 
                 _dbConnection.Open();
 
-                await _dbConnection.ExecuteAsync(sql, request.User);
+                var res = await _dbConnection.ExecuteAsync(sql, request.User);
                 
                 _dbConnection.Close();
 
-                return Unit.Value;
+                return res;
             }
         }
     }

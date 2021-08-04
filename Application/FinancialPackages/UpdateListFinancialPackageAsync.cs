@@ -12,9 +12,9 @@ namespace Application.FinancialPackages
 {
     public class UpdateListFinancialPackageAsync
     {
-        public record Command(List<FinancialPackage> financialPackages) : IRequest;
+        public record Command(List<FinancialPackage> financialPackages) : IRequest<int>;
 
-        public class Handler : IRequestHandler<Command>
+        public class Handler : IRequestHandler<Command, int>
         {
             #region ctor
             private readonly IDbConnection _dbConnection;
@@ -24,7 +24,7 @@ namespace Application.FinancialPackages
             }
             #endregion
 
-            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<int> Handle(Command request, CancellationToken cancellationToken)
             {
                 #region sql
                 var sql =
@@ -37,11 +37,11 @@ namespace Application.FinancialPackages
 
                 _dbConnection.Open();
 
-                await _dbConnection.ExecuteAsync(sql, financialPackages);
+                var res = await _dbConnection.ExecuteAsync(sql, financialPackages);
 
                 _dbConnection.Close();
 
-                return Unit.Value;
+                return res;
 
             }
         }

@@ -76,13 +76,15 @@ namespace API.Controllers
 
             try
             {
-                await _mediator.Send(new CreateListOfFinancialPackageAsync.Command(financialPackages));
+                var res = await _mediator.Send(new CreateListOfFinancialPackageAsync.Command(financialPackages));
+                if (res <= 0)
+                    return BadRequest();
+                return Ok();
             }
             catch (Exception)
             {
                 throw;
             }
-            return Ok();
         }
 
         [HttpDelete("{id}")]
@@ -122,7 +124,6 @@ namespace API.Controllers
             {
                 throw;
             }
-
         }
 
         [HttpPut("UpdateList")]
@@ -133,15 +134,15 @@ namespace API.Controllers
 
             try
             {
-                await _mediator.Send(new UpdateListFinancialPackageAsync.Command(financialPackages));
+                var res = await _mediator.Send(new UpdateListFinancialPackageAsync.Command(financialPackages));
+                if(res <= 0)
+                    return BadRequest();
                 return Ok();
             }
             catch (Exception)
             {
                 throw;
             }
-
         }
-
     }
 }

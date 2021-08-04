@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Application
 {
     public static class SP
@@ -11,5 +6,9 @@ namespace Application
         public const string Profit = "Profit";
 
         public const string Commission = "Commission";
+
+        public const string Success = "Success";
+
+        public const string Fail = "Fail";
     }
 }
