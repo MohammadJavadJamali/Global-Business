@@ -40,6 +40,8 @@ namespace API.Jobs
 
             await CalculateProfitAmountPerDayForEachUser();
 
+            await _mediator.Send(new Save.Command());
+
             watch.Stop();
 
             _logger.LogInformation($"Profit from financial packages was deposited in {watch.ElapsedMilliseconds} ms!");
@@ -73,14 +75,12 @@ namespace API.Jobs
                     }
                     else
                     {
-                        //await _userFinancial.DeleteAsync(UF);
                         await _mediator.Send(new RemoveUserFinancialPackage.Command(UF));
                     }
                     if (userFinancialPackages.Count is 0)
                         break;
                 }
             }
-            await _mediator.Send(new Save.Command());
 
             _logger.LogInformation($"deposit profit for {users.Count()} users");
         }
@@ -102,9 +102,8 @@ namespace API.Jobs
         /// <returns></returns>
         private async Task<IEnumerable<AppUser>> GetAllUsers()
         {
-            //await _user.GetAll(x => x.UserFinancialPackages.Count() > 0, y => y.UserFinancialPackages);
             var users = await _mediator.Send(new GetAllUsersAsync.Query());
-            //users = users.Where(x => x.UserFinancialPackages.Count() > 0).ToList();
+            users = users.Where(x => x.UserFinancialPackages.Count() > 0).ToList();
             return users;
         }
 
