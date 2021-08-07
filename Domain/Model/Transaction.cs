@@ -20,7 +20,7 @@ namespace Domain.Model
         public string EmailTargetAccount { get; set; }
 
         // about relation
-        public string User_Id { get; set; }
+        public string UserId { get; set; }
 
         public virtual AppUser User { get; set; } 
 

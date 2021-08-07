@@ -26,20 +26,21 @@ namespace API.Jobs
         #region Ctor
         public DepositCommission(
               INode node
+            , ISave save
             , IProfit profit
             , ITransaction transaction
             , IUserFinancial userFinancial
             , ILogger<DepositCommission> logger
-            , IUser user, IFinancialPackage financialPackage, ISave save)
+            , IUser user, IFinancialPackage financialPackage)
         {
             _node = node;
             _user = user;
+            _save = save;
             _logger = logger;
             _profit = profit;
             _transaction = transaction;
             _userFinancial = userFinancial;
             _financialPackage = financialPackage;
-            _save = save;
         }
         #endregion
 
@@ -79,7 +80,6 @@ namespace API.Jobs
         }
         #endregion
 
-
         #region helper
 
         public Node leftNode { get; set; }
@@ -105,8 +105,25 @@ namespace API.Jobs
 
                 if (commission is not 0)
                 {
-                    await ProfitHelper.CreateProfit(node.AppUser, _profit, commission);
-                    TransactionHelper.CreateTransaction(_user, node.AppUser, commission, _transaction);
+                    //await ProfitHelper.CreateProfit(node.AppUser, _profit, commission);
+                    Profit profit = new();
+                    profit.User = node.AppUser;
+                    profit.ProfitAmount = commission;
+                    await _profit.Create(profit);
+
+                    Transaction transaction = new();
+                    transaction.User = node.AppUser;
+                    transaction.Amount = commission;
+                    transaction.EmailTargetAccount = node.AppUser.Email;
+                    transaction.InitialBalance = node.AppUser.AccountBalance;
+                    transaction.FinalBalance = node.AppUser.AccountBalance + commission;
+
+                    node.AppUser.AccountBalance += commission;
+
+                    _transaction.Create(transaction);
+
+                    _user.Update(node.AppUser);
+                    //TransactionHelper.CreateTransaction(_user, node.AppUser, commission, _transaction);
                 }
 
                 rightNode = await _node

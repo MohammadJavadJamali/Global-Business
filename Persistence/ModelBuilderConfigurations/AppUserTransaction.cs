@@ -12,7 +12,7 @@ namespace Application.ModelBuilderConfigurations
             builder
                .HasOne(u => u.User)
                .WithMany(t => t.Transactions)
-               .HasForeignKey(i => i.User_Id);
+               .HasForeignKey(i => i.UserId);
         }
     }
 }

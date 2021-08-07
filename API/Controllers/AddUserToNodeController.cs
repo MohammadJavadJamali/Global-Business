@@ -188,9 +188,7 @@ namespace API.Controllers
                     _node.Update(parentNode);
                 }
                 else
-                {
                     continue;
-                }
 
             } while (parentNode.ParentId is not null);
 
@@ -198,12 +196,12 @@ namespace API.Controllers
 
             return true;
         }
-
-
         private async Task<decimal> MinimumSubBranch(Node node)
         {
+
             var leftNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.LeftUserId, y => y.AppUser);
             var rightNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.RightUserId, y => y.AppUser);
+
 
             if (rightNode is null)
                 return 0;
@@ -214,7 +212,8 @@ namespace API.Controllers
                     leftNode.TotalMoneyInvested > rightNode.TotalMoneyInvested ?
                     rightNode.TotalMoneyInvested : leftNode.TotalMoneyInvested;
             }
-            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null)
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null &&
+                !leftNode.IsCalculate && !rightNode.IsCalculate)
             {
                 return
                     leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested >
@@ -223,12 +222,40 @@ namespace API.Controllers
                     rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested
                     : leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested;
             }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null &&
+                leftNode.IsCalculate && !rightNode.IsCalculate)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets >
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested ?
+
+                    rightNode.TotalMoneyInvestedBySubsets + rightNode.TotalMoneyInvested
+                    : leftNode.TotalMoneyInvestedBySubsets;
+            }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null &&
+                !leftNode.IsCalculate && rightNode.IsCalculate)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested >
+                    rightNode.TotalMoneyInvestedBySubsets ?
+
+                    rightNode.TotalMoneyInvestedBySubsets
+                    : leftNode.TotalMoneyInvestedBySubsets + leftNode.TotalMoneyInvested;
+            }
+            else if (leftNode.LeftUserId is not null && rightNode.LeftUserId is not null &&
+                leftNode.IsCalculate && rightNode.IsCalculate)
+            {
+                return
+                    leftNode.TotalMoneyInvestedBySubsets > rightNode.TotalMoneyInvestedBySubsets ?
+                    rightNode.TotalMoneyInvestedBySubsets : leftNode.TotalMoneyInvestedBySubsets;
+            }
             else if (leftNode.LeftUserId is not null || rightNode.LeftUserId is not null)
             {
                 return
                     leftNode.TotalMoneyInvestedBySubsets > rightNode.TotalMoneyInvestedBySubsets ?
                     rightNode.TotalMoneyInvestedBySubsets : leftNode.TotalMoneyInvestedBySubsets;
             }
+
             else
                 return 0;
         }

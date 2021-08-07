@@ -11,7 +11,7 @@ namespace Application.ModelBuilderConfigurations
             builder
                 .HasOne(u => u.User)
                 .WithMany(p => p.Profits)
-                .HasForeignKey(u => u.User_Id);
+                .HasForeignKey(u => u.UserId);
         }
     }
 }

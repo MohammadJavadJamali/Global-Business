@@ -12,7 +12,7 @@ namespace Domain.Model
         public decimal ProfitAmount { get; set; }
 
 
-        public string User_Id { get; set; }
+        public string UserId { get; set; }
         public AppUser User { get; set; }
 
     }
