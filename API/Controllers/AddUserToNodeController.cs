@@ -16,18 +16,12 @@ namespace API.Controllers
     [ApiController]
     public class AddUserToNodeController : ControllerBase
     {
-        #region Fields
-
         private readonly ISave _save;
         private readonly IUser _user;
         private readonly INode _node;
         private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
         private readonly IFinancialPackage _financialPackage;
-
-        #endregion
-
-        #region Ctor
 
         public AddUserToNodeController(
               IUser user
@@ -45,10 +39,6 @@ namespace API.Controllers
             _financialPackage = financialPackage;
         }
 
-        #endregion
-
-        #region Methods
-
         [HttpPost]
         public async Task<ActionResult> CreateNode(CreateNodeDto createNodeDto)
         {
@@ -57,17 +47,11 @@ namespace API.Controllers
             var parentUser = await _user
                 .FirstOrDefaultAsync(u => u.IntroductionCode == createNodeDto.IntroductionCode, b => b.Node);
 
-            #region validation
-
             if (parentUser.Node is null)
                 return BadRequest("Introduction code is invalid !");
 
-            #endregion
-
             var curentUser = await _userManager.Users.Include(u => u.Node)
                 .FirstOrDefaultAsync(f => f.Email == User.FindFirstValue(ClaimTypes.Email));
-
-            #region validation
 
             if (curentUser is null)
                 return BadRequest("user not found !");
@@ -75,10 +59,6 @@ namespace API.Controllers
             if (curentUser.Node is not null)
                 if (curentUser.Node.ParentId is not null)
                     return BadRequest("You in set !");
-
-            #endregion
-
-            #region Create Node
 
             if (parentUser.Node.LeftUserId is null)
             {
@@ -102,14 +82,7 @@ namespace API.Controllers
             {
                 return BadRequest("Introduction code is complete");
             }
-
-            #endregion
-
         }
-
-        #endregion
-
-        #region helper
 
         private Node MapNode(AppUser user, AppUser parent, CreateNodeDto createNodeDto) =>
             new Node()
@@ -259,8 +232,5 @@ namespace API.Controllers
             else
                 return 0;
         }
-
-        #endregion
-
     }
 }

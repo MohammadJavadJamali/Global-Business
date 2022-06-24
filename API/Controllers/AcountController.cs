@@ -1,21 +1,12 @@
-﻿#region using
-using Domain.DTO;
-using System.Linq;
+﻿using Domain.DTO;
 using API.Services;
 using Domain.Model;
 using System.Text.Json;
 using Application.Helpers;
-using Application.Repository;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using System.Diagnostics;
-using System;
-#endregion
 
 namespace API.Controllers
 {
@@ -24,15 +15,9 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class AcountController : ControllerBase
     {
-        #region Fields
-
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IAuthenticationManager _authenticationManager;
-
-        #endregion
-
-        #region Ctor
 
         public AcountController(
               UserManager<AppUser> userManager
@@ -44,10 +29,6 @@ namespace API.Controllers
             _roleManager = roleManager;
             _authenticationManager = authenticationManager;
         }
-
-        #endregion
-
-        #region Action mthods
 
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
@@ -68,13 +49,9 @@ namespace API.Controllers
 
         }
 
-
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register([FromBody] RegisterDto registerDto)
         {
-
-            #region Validation
-
             if (!ModelState.IsValid)
                 return BadRequest("all filds required");
 
@@ -92,14 +69,9 @@ namespace API.Controllers
                 }
             }
 
-            #endregion
-
-
             var user = MapUserHelper.MapAppUser(registerDto);
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
-
-            #region result error
 
             if (!result.Succeeded)
             {
@@ -110,8 +82,6 @@ namespace API.Controllers
 
                 return BadRequest(ModelState);
             }
-
-            #endregion
             
             await _userManager.AddToRolesAsync(user, registerDto.Roles);
 
@@ -119,10 +89,6 @@ namespace API.Controllers
 
             return Ok(json);
         }
-
-        #endregion
-
-        #region Helper
 
         private async Task<UserDto> CreateUserObject(AppUser user) =>
            new UserDto()
@@ -132,6 +98,5 @@ namespace API.Controllers
                Email = user.Email,
                Token = await _authenticationManager.CreateToken()
            };
-        #endregion
     }
 }

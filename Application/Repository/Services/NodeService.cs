@@ -8,17 +8,12 @@ namespace Application.Repository
 {
     public class NodeService : INode
     {
-        #region Fields
         private readonly IRepository<Node> _repository;
-        #endregion
 
-        #region Ctro
         public NodeService(IRepository<Node> repository)
         {
             _repository = repository;
         }
-        #endregion
-
         
 
         public IEnumerable<Node> Where(Expression<Func<Node, bool>> expression)
@@ -28,26 +23,16 @@ namespace Application.Repository
 
         public virtual async Task CreateAsync(Node entity)
         {
-            if (entity == null)
-                throw new ArgumentNullException();
-
             await _repository.CreateAsync(entity);
-
         }
 
         public async Task Create(Node entity)
         {
-            if (entity == null)
-                throw new ArgumentNullException();
-
             await _repository.Create(entity);
         }
 
         public async Task UpdateAsync(Node entity)
         {
-            if(entity is null)
-                throw new ArgumentNullException();
-
             await _repository.UpdateAsync(entity);
         }
         public void Update(Node entity)
@@ -69,10 +54,6 @@ namespace Application.Repository
 
         public virtual async Task<Node> GetByIdAsync(int id)
         {
-            if (id == 0)
-            {
-                return null;
-            }
             return await _repository.GetByIdAsync(id);
         }
 

@@ -1,38 +1,27 @@
 ﻿using Quartz;
-using System;
-using System.Linq;
 using Domain.Model;
-using Application.Repository;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
 using Application.Helpers;
-using System.Diagnostics;
+using Application.Repository;
 
-namespace API.Jobs
+namespace WorkerService.Jobs
 {
     [DisallowConcurrentExecution]
     public class DepositProfit : IJob
     {
-        #region Fields
         private readonly ISave _save;
         private readonly IUser _user;
         private readonly IProfit _profit;
         private readonly ITransaction _transaction;
         private readonly IUserFinancial _userFinancial;
         private readonly ILogger<DepositProfit> _logger;
-        private readonly IFinancialPackage _financialPackage;
-        #endregion
 
-        #region Ctro
         public DepositProfit(
               ISave save
             , IUser user
             , IProfit profit
             , ITransaction transaction
             , IUserFinancial userFinancial
-            , ILogger<DepositProfit> logger
-            , IFinancialPackage financialPackage)
+            , ILogger<DepositProfit> logger)
         {
             _save = save;
             _user = user;
@@ -40,32 +29,27 @@ namespace API.Jobs
             _profit = profit;
             _transaction = transaction;
             _userFinancial = userFinancial;
-            _financialPackage = financialPackage;
         }
-        #endregion
 
-        #region work
         public async Task Execute(IJobExecutionContext context)
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             await CalculateProfitAmountPerDayForEachUser();
-
-            watch.Stop();
-
-            _logger.LogInformation($"Profit from financial packages was deposited in {watch.ElapsedMilliseconds} ms!");
         }
-        #endregion
 
-        #region Helper
-        /// <summary>
-        /// Calculate profit amount per day for each user and itself create a transaction and profit recored in database
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
         private async Task CalculateProfitAmountPerDayForEachUser()
         {
+            Console.WriteLine("Deposit Profit worked.");
+
+            Profit profit = new()
+            {
+                ProfitAmount = 10000,
+                UserId = "286a858d-60c4-4b99-bf75-85f8b7a2e7fb",
+                ProfitDepositDate = DateTime.Now,
+                IsDeleted = false
+            };
+            await _profit.CreateAsync(profit);
+
+            await Task.Delay(2000);
 
             var users = await GetAllUsers();
 
@@ -78,21 +62,6 @@ namespace API.Jobs
                 {
                     if (!IsEndFinancialPackage(UF))
                     {
-                        #region comment
-                        //decimal profitAmount = 0;
-                        //decimal profitAmountPerDay = 0;
-
-                        //var financialPackage = await GetFinancialPackage(UF);
-
-                        //profitAmount += UF.AmountInPackage * (decimal)financialPackage.ProfitPercent / 100;
-
-                        ////double FinancialPackageDay = GetFinancialPackageDay(UF);
-
-                        //int FinancialPackageDay = UF.DayCount;
-
-                        //profitAmountPerDay += profitAmount / FinancialPackageDay;
-                        #endregion
-
                         var profitAmountPerDay = UF.ProfitAmountPerDay;
 
                         TransactionHelper.CreateTransaction(_user, user, profitAmountPerDay, _transaction);
@@ -107,30 +76,17 @@ namespace API.Jobs
                         break;
                 }
             }
-            _logger.LogInformation($"deposit profit for {users.Count()} users");
-
             await _save.SaveChangeAsync();
+
+            _logger.LogInformation($"deposit profit for {users.Count()} users");
 
         }
 
-
-        /// <summary>
-        /// Checks if the user's financial package has expired
-        /// </summary>
-        /// <param name="UF"></param>
-        /// <returns></returns>
         private bool IsEndFinancialPackage(UserFinancialPackage UF) =>
             UF.EndFinancialPackageDate <= DateTime.Now ? true : false;
 
-
-        /// <summary>
-        /// Gives all users that have financial package
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
         private async Task<IEnumerable<AppUser>> GetAllUsers() =>
             await _user.GetAll(x => x.UserFinancialPackages.Count() > 0, y => y.UserFinancialPackages);
 
-        #endregion
     }
 }

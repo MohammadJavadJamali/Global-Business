@@ -1,26 +1,19 @@
-﻿using System;
-using Domain.DTO;
+﻿using Domain.DTO;
 using System.Text;
 using Domain.Model;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.Configuration;
 
 namespace API.Services
 {
     public class AuthenticationManager : IAuthenticationManager
     {
-        #region Fields
         private AppUser _user;
         private readonly IConfiguration _config;
         private readonly UserManager<AppUser> _userManager;
-        #endregion
 
-        #region Ctro
         public AuthenticationManager(
               IConfiguration config
             , UserManager<AppUser> userManager)
@@ -28,7 +21,6 @@ namespace API.Services
             _config = config;
             _userManager = userManager;
         }
-        #endregion
 
         public async Task<AppUser> GetCurrentUser(LoginDto loginDto) =>
             await _userManager.FindByEmailAsync(loginDto.Email);

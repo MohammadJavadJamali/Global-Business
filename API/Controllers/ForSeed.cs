@@ -19,8 +19,6 @@ namespace API.Controllers
     [ApiController]
     public class ForSeed : ControllerBase
     {
-
-        #region Fields
         private readonly ISave _save;
         private readonly IUser _user;
         private readonly INode _node;
@@ -28,10 +26,6 @@ namespace API.Controllers
         private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
         private readonly IFinancialPackage _financialPackage;
-
-        #endregion
-
-        #region Ctor
 
         public ForSeed(
               IUser user
@@ -49,13 +43,9 @@ namespace API.Controllers
             _save = save;
         }
 
-        #endregion
-
         [HttpPost]
         public async Task<ActionResult> SeedUserToNood(UserToNodeDto userToNodeDto)
         {
-
-            #region register user
             RegisterDto registerDto = new();
 
             userToNodeDto.Name = StringGenerator.RandomString();
@@ -78,15 +68,9 @@ namespace API.Controllers
             await _userManager.AddToRolesAsync(user, registerDto.Roles);
 
 
-            #endregion
-
-
             var parentNode = await _node.FirstOrDefaultAsync(x => x.LeftUserId == null || x.RightUserId == null, c => c.AppUser);
 
             userToNodeDto.IntroductionCode = parentNode.IntroductionCode;
-
-            //var parentUser = await _user
-            //    .FirstOrDefaultAsync(u => u.IntroductionCode == userToNodeDto.IntroductionCode, b => b.Node);
 
             if (parentNode is null)
                 return BadRequest();
@@ -124,10 +108,6 @@ namespace API.Controllers
             }
 
         }
-
-
-
-        #region helper
 
         private Node MapNode(AppUser user, AppUser parent, CreateNodeDto createNodeDto) =>
             new Node()
@@ -219,7 +199,6 @@ namespace API.Controllers
             return true;
         }
 
-
         private async Task<decimal> MinimumSubBranch(Node node)
         {
             var leftNode = await _node.FirstOrDefaultAsync(x => x.UserId == node.LeftUserId, y => y.AppUser);
@@ -252,9 +231,6 @@ namespace API.Controllers
             else
                 return 0;
         }
-
-        #endregion
-
 
         [HttpPost("{num}")]
         public async Task MainMethod(int num)

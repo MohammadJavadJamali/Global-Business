@@ -1,40 +1,22 @@
-﻿//Remember that the DepositProfit class does not use repository
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Repository
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        #region Fields
-
         private DbSet<T> _entities;
         private readonly DataContext _context;
-
-        #endregion
-
-        #region Ctro
 
         public Repository(DataContext context)
         {
             _context = context;
         }
 
-        #endregion
-
-        #region Properties
-
-        // Gets a table
-        public virtual IQueryable<T> Table => Entity;
-
-        // Get a table with no tracking
-        public virtual IQueryable<T> TableNoTracking => Entity.AsNoTracking();
-
-        // Gets an entity set
         protected virtual DbSet<T> Entity
         {
             get
@@ -45,58 +27,6 @@ namespace Application.Repository
             }
         }
 
-        #endregion
-
-        #region Helpers
-        /// <summary>
-        /// Rollback of entity changes and return full error message
-        /// </summary>
-        /// <param name="exception"></param>
-        /// <returns> error message </returns>
-        protected async Task<string> GetFullErrorTextAndRollbackEntityChangesAsync(DbUpdateException exception)
-        {
-            //rollback entity changes
-            if (_context is DataContext dbContext)
-            {
-                var entries = dbContext.ChangeTracker.Entries()
-                    .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified).ToList();
-
-                entries.ForEach(entry =>
-                {
-                    try
-                    {
-                        entry.State = EntityState.Unchanged;
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // ignored
-                    }
-                });
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return exception.ToString();
-            }
-            catch (Exception ex)
-            {
-                //if after the rollback of changes the context is still not saving,
-                //return the full text of the exception that occurred when saving
-                return ex.ToString();
-            }
-        }
-
-        #endregion
-
-        #region Methods
-
-
-        /// <summary>
-        /// Create a entity 
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
         public async Task<T> CreateAsync(T entity)
         {
             if (entity == null)
@@ -107,9 +37,9 @@ namespace Application.Repository
                 await Entity.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException exception)
+            catch (Exception)
             {
-                throw new Exception(await GetFullErrorTextAndRollbackEntityChangesAsync(exception), exception);
+                throw new DbUpdateException();
             }
             return entity;
         }
@@ -122,22 +52,16 @@ namespace Application.Repository
             {
                  await Entity.AddAsync(entity);
             }
-            catch (DbUpdateException exception)
+            catch (Exception)
             {
-                throw new Exception(await GetFullErrorTextAndRollbackEntityChangesAsync(exception), exception);
+                throw new DbUpdateException();
             }
         }
 
-        /// <summary>
-        /// Update a entity
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
         public async Task<T> UpdateAsync(T entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
-
 
             try
             {
@@ -150,7 +74,6 @@ namespace Application.Repository
             }
             return entity;
         }
-
         public void Update(T entity)
         {
             if (entity == null)
@@ -166,11 +89,6 @@ namespace Application.Repository
             }
         }
 
-        /// <summary>
-        /// remove record from database
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public async Task<bool> DeleteAsync(object id)
         {
             try
@@ -200,24 +118,17 @@ namespace Application.Repository
             return true;
         }
 
-        //Find records that have this experssion
         public IEnumerable<T> Where(Expression<Func<T, bool>> expression)
         {
             return Entity.Where(expression);
         }
-
-        /// <summary>
-        /// Get all record . you can pass parameters in string format for include method .
-        /// parameters should split with ',' if you have mor than one patameter 
-        /// </summary>
-        /// <param name="includeProperties"></param>
-        /// <returns>List of your entity with include field</returns>
+        
         public async Task<IEnumerable<T>> GetAll(
             Expression<Func<T, bool>> filter = null,
             Expression<Func<T, object>> include = null)
         {
 
-            IQueryable<T> query = _context.Set<T>();
+            IQueryable<T> query = Entity;
 
             if(include is not null)
                 query = query.Include(include);
@@ -230,12 +141,6 @@ namespace Application.Repository
 
         }
 
-
-        /// <summary>
-        /// It has a similar function to the FirstOrDefaultAsync function
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns> a Entity </returns>
         public async Task<T> FirstOrDefaultAsync(
             Expression<Func<T, bool>> expression,
             Expression<Func<T, object>> include = null)
@@ -250,25 +155,14 @@ namespace Application.Repository
 
         }
 
-
-
-        /// <summary>
-        /// Find record with id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public async Task<T> GetByIdAsync(object id)
         {
             return await Entity.FindAsync(id);
         }
 
-        //Dispose
         public void Dispose()
         {
             _context.Dispose();
         }
-
-
-        #endregion
     }
 }

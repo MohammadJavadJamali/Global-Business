@@ -1,10 +1,8 @@
-﻿using System;
-using Domain.DTO;
+﻿using Domain.DTO;
 using Domain.Model;
 using Application.Helpers;
 using Application.Repository;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
@@ -16,15 +14,11 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class TransactionController : ControllerBase
     {
-        #region Fields
         private readonly ISave _save;
         private readonly IUser _user;
         private readonly ITransaction _transaction;
         private readonly UserManager<AppUser> _userManager;
 
-        #endregion
-
-        #region Ctor
         public TransactionController(
               IUser user
             , ITransaction transaction
@@ -36,14 +30,9 @@ namespace API.Controllers
             _save = save;
         }
 
-        #endregion
-
-        #region Action mthods
-
         [HttpPost]
         public async Task<ActionResult> CreateTransaction(TransactionDTo transactionDTo)
         {
-
             if (!ModelState.IsValid)
                 return BadRequest("All filds are requird!");
 
@@ -78,8 +67,5 @@ namespace API.Controllers
                 throw;
             }
         }
-
-        #endregion
-
     }
 }

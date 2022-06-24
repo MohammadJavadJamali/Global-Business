@@ -2,9 +2,7 @@
 using Domain.Model;
 using System.Text.Json;
 using Application.Repository;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers
@@ -14,22 +12,12 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class ProfitController : ControllerBase
     {
-
-        #region Fields
-
         private readonly IProfit _profit;
 
-        #endregion
-
-        #region Ctor
         public ProfitController(IProfit profit)
         {
             _profit = profit;
         }
-
-        #endregion
-
-        #region Method
 
         [HttpPost]
         public async Task CreateProfit(ProfitDTO profitDTO)
@@ -56,9 +44,5 @@ namespace API.Controllers
 
             return Ok(json);
         }
-
-
-        #endregion
-
     }
 }

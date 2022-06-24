@@ -2,7 +2,6 @@
 using Application.Helpers;
 using Application.Repository;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Domain.DTO.FinancialDTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
@@ -16,16 +15,12 @@ namespace API.Controllers
     [Authorize(Roles = "Admin, Node")]
     public class UserFinancialController : ControllerBase
     {
-
-        #region Fields
         private readonly ISave _save;
         private readonly INode _node;
         private readonly IUserFinancial _userFinancial;
         private readonly UserManager<AppUser> _userManager;
         private readonly IFinancialPackage _financialPackage;
-        #endregion
 
-        #region ctor
         public UserFinancialController(
               INode node
             , IUserFinancial userFinancial
@@ -39,9 +34,6 @@ namespace API.Controllers
             _save = save;
         }
 
-        #endregion
-
-        #region Action Method
         [HttpPost]
         public async Task<ActionResult<UserFinancialPackage>> CreateUserFinance(UserFinancialDTO financialDTO)
         {
@@ -55,12 +47,6 @@ namespace API.Controllers
                 .Users
                 .Include(n => n.Node)
                 .FirstOrDefaultAsync(u => u.Email == User.FindFirstValue(ClaimTypes.Email));
-
-            //var node = await _node.FirstOrDefaultAsync(x => x.UserId == currentUser.Id, u => u.AppUser);
-
-            //var parentNode = await _node
-            //    .FirstOrDefaultAsync(x => x.LeftUserId == node.UserId || x.RightUserId == node.UserId, u => u.AppUser);
-            
 
             if (currentUser == null)
                 return BadRequest("Email in not exist!");
@@ -85,9 +71,6 @@ namespace API.Controllers
                 return BadRequest("Something is wrong !");
 
         }
-        #endregion
-
-        #region Helper
 
         private bool DontHaveEnoughMony(UserFinancialDTO financialDTO, AppUser user)
         {
@@ -101,12 +84,6 @@ namespace API.Controllers
             return user.AccountBalance < sumAmountInPackages + financialDTO.AmountInPackage ? true : false;
         }
 
-        /// <summary>
-        /// get account balance that financial packages have been reduced
-        /// </summary>
-        /// <param name="financialDTO"></param>
-        /// <param name="user"></param>
-        /// <returns></returns>
         private decimal GetPureAccountBalance(AppUser user)
         {
             decimal sumAmountInPackages = SumAmountInPackages(user);
@@ -114,11 +91,6 @@ namespace API.Controllers
             return user.AccountBalance - sumAmountInPackages;
         }
 
-        /// <summary>
-        ///Returns total deposits of user financial packages
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
         private decimal SumAmountInPackages(AppUser user)
         {
             decimal sumAmountInPackages = 0;
@@ -132,7 +104,5 @@ namespace API.Controllers
             }
             return sumAmountInPackages;
         }
-        #endregion
-
     }
 }
